@@ -1,5 +1,7 @@
 package com.thelightphone.lp3keyboard
 
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.Lifecycle
@@ -12,15 +14,13 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.thelightphone.lp3Keyboard.ui.DefaultLp3KeyboardViewModel
-import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 
 class IMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
     SavedStateRegistryOwner,
-    Lp3KeyboardCallback {
+    Lp3RepeatableKeyboardCallback {
 
     private val viewModel: DefaultLp3KeyboardViewModel by lazy {
         val factory = object : ViewModelProvider.Factory {
@@ -56,6 +56,11 @@ class IMEService : LifecycleInputMethodService(),
         get() = dispatcher.lifecycle
 
     private val store = ViewModelStore()
+    private val vibrator by lazy { getSystemService(Vibrator::class.java) }
+
+    private fun tick() {
+        vibrator.vibrate(50)
+    }
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
 
@@ -75,9 +80,18 @@ class IMEService : LifecycleInputMethodService(),
     }
 
     override fun onKeyPressed(code: Int) {
+        tick()
     }
 
     override fun onSpecialKeyPressed(key: SpecialKey) {
+        when(key) {
+            SpecialKey.Space -> {
+                currentInputConnection?.commitText(" ", 1)
+                updateCapsMode()
+            }
+            else -> {}
+        }
+        tick()
     }
 
     override fun onKeyReleased(code: Int) {
@@ -86,12 +100,48 @@ class IMEService : LifecycleInputMethodService(),
     }
 
     override fun onSpecialKeyReleased(key: SpecialKey) {
+        when (key) {
+            SpecialKey.Backspace -> {
+                currentInputConnection?.deleteSurroundingText(1, 0)
+                updateCapsMode()
+            }
+            else -> {}
+        }
     }
 
     override fun onKeyLongPressed(code: Int) {
+        tick()
     }
 
     override fun onSpecialKeyLongPressed(key: SpecialKey) {
+        when (key) {
+            SpecialKey.Backspace -> {
+                val ic = currentInputConnection ?: return
+                // Get text before cursor to find the word boundary (max 100 chars long)
+                val before = ic.getTextBeforeCursor(100, 0) ?: return
+                val trimmed = before.trimEnd()
+                val lastSpace = trimmed.indexOfLast { it.isWhitespace() }
+                // Delete from cursor back to start of word (including trailing spaces)
+                val charsToDelete = before.length - (if (lastSpace >= 0) lastSpace + 1 else 0)
+                ic.deleteSurroundingText(charsToDelete, 0)
+                updateCapsMode()
+            }
+            else -> {}
+        }
+        tick()
     }
 
+    override fun onKeyRepeated(code: Int) {
+        println("LP3 REPATED $code")
+    }
+
+    override fun onSpecialKeyRepeated(specialKey: SpecialKey) {
+        when(specialKey) {
+            SpecialKey.Space -> {
+                currentInputConnection?.commitText(" ", 1)
+                updateCapsMode()
+            }
+            else -> {}
+        }
+    }
 }
