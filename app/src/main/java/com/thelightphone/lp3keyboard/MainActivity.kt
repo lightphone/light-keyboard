@@ -21,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
@@ -61,6 +63,11 @@ fun Options() {
             Text(text = "2. Select IME")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TextField(value = text, onValueChange = setValue, modifier = Modifier.fillMaxWidth())
+        TextField(
+            value = text,
+            onValueChange = setValue,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        )
     }
 }
