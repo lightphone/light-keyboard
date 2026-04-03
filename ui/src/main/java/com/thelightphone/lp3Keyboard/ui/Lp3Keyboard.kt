@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
@@ -21,6 +22,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,9 +36,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class SpecialKey {
-    Caps,
+    UpCase,
+    DownCase,
     Backspace,
-    Space
+    Space,
+    Letters,
+    Numbers,
+    Symbols,
+    Emojis,
+    Submit,
+    Close,
+    Voice
 }
 
 interface Lp3KeyboardCallback {
@@ -46,9 +58,9 @@ interface Lp3KeyboardCallback {
     fun onSpecialKeyLongPressed(key: SpecialKey)
 }
 
-private const val HEIGHT_DP = 200
+const val LP3_KEYBOARD_HEIGHT_DP = 200
 private const val STANDARD_KEY_WIDTH_DP = 34
-private const val STANDARD_ROW_HEIGHT_DP = 40
+private const val STANDARD_ROW_HEIGHT_DP = 44
 private const val STANDARD_KEY_TEXT_SP = 24
 
 @Composable
@@ -63,7 +75,7 @@ fun Lp3Keyboard(layout: Layout, options: KeyboardOptions, callback: Lp3KeyboardC
     Box(
         Modifier
             .fillMaxWidth()
-            .height(HEIGHT_DP.dp)
+            .height(LP3_KEYBOARD_HEIGHT_DP.dp)
             .background(Color.Black)
     ) {
         Column(
@@ -82,11 +94,12 @@ fun RowScope.IconKey(
     @DrawableRes drawable: Int,
     key: SpecialKey,
     callback: Lp3KeyboardCallback,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    width: Dp = STANDARD_KEY_WIDTH_DP.dp
 ) {
     Box(
         modifier = Modifier
-            .width(STANDARD_KEY_WIDTH_DP.dp)
+            .width(width)
             .fillMaxHeight()
             .pointerInput(key) {
                 detectTapGestures(
@@ -115,7 +128,7 @@ fun RowScope.SpaceBar(callback: Lp3KeyboardCallback, width: Dp) {
     ) {
         Box(
             Modifier
-                .height(3.dp)
+                .height(2.dp)
                 .background(Color.White)
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -139,6 +152,7 @@ fun RowScope.Key(
     override: SpecialKey? = null
 ) {
     val code = char.code
+    var pressed by remember { mutableStateOf(false) }
 
     val onPressed = override
         ?.let { { callback.onSpecialKeyPressed(it) } }
@@ -159,8 +173,10 @@ fun RowScope.Key(
             .pointerInput(char) {
                 detectTapGestures(
                     onPress = {
+                        pressed = true
                         onPressed()
                         tryAwaitRelease()
+                        pressed = false
                         onReleased()
                     },
                     onLongPress = { onLongPressed() },
@@ -168,12 +184,15 @@ fun RowScope.Key(
             },
         contentAlignment = Alignment.Center
     ) {
+        val fontSize = if (pressed) (STANDARD_KEY_TEXT_SP + 6).sp else STANDARD_KEY_TEXT_SP.sp
+        val offsetY = if (pressed) (-12).dp else 0.dp
         Text(
             text = char.toString(),
             color = Color.White,
             fontFamily = akkuratFamily,
             fontWeight = FontWeight.Normal,
-            fontSize = STANDARD_KEY_TEXT_SP.sp
+            fontSize = fontSize,
+            modifier = Modifier.offset(y = offsetY)
         )
     }
 }
@@ -183,7 +202,8 @@ typealias Emoji = Int
 data class KeyboardOptions(
     val emojis: List<Emoji>?,
     val displayClose: Boolean,
-    val displayReturn: Boolean
+    val displayReturn: Boolean,
+    val displayVoice: Boolean
 )
 
 sealed interface Layout {
@@ -250,20 +270,33 @@ open class AlphabetLayout(private val letters: List<String>) {
                     false -> R.drawable.down_lp3
                 }
             }
-            IconKey(capsDrawable, SpecialKey.Caps, callback)
+            val capsKey = when (layout) {
+                LowerCaseLayout -> SpecialKey.UpCase
+                is UpperCaseLayout -> SpecialKey.DownCase
+            }
+            IconKey(
+                capsDrawable, capsKey, callback, width = (STANDARD_KEY_WIDTH_DP + 14).dp,
+                modifier = Modifier.padding(14.dp).padding(bottom = 6.dp, end = 4.dp)
+            )
             for (char in letters[2]) {
                 Key(char, callback)
             }
-            IconKey(R.drawable.back_lp3, SpecialKey.Backspace, callback)
+            IconKey(
+                R.drawable.back_lp3,
+                SpecialKey.Backspace,
+                callback,
+                width = (STANDARD_KEY_WIDTH_DP + 14).dp,
+                modifier = Modifier.padding(14.dp)
+            )
         }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(STANDARD_ROW_HEIGHT_DP.dp),
+                .height((STANDARD_ROW_HEIGHT_DP - 10).dp),
             horizontalArrangement = Arrangement.Center,
         ) {
-            SpaceBar(callback, 150.dp)
+            SpaceBar(callback, 160.dp)
         }
     }
 }
@@ -280,7 +313,7 @@ fun Lp3KeyboardPreview() {
         override fun onSpecialKeyLongPressed(key: SpecialKey) = Unit
     }
     Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
-        val options = KeyboardOptions(emptyList(), true, true)
+        val options = KeyboardOptions(emptyList(), true, true, true)
         Lp3Keyboard(LowerCaseLayout, options, callback)
     }
 }

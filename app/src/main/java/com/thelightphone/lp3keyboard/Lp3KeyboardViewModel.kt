@@ -28,6 +28,7 @@ class DefaultLp3KeyboardViewModel(private val delegateCallback: Lp3RepeatableKey
         KeyboardOptions(
             emptyList(),
             true,
+            true,
             true
         )
     )
@@ -65,7 +66,7 @@ class DefaultLp3KeyboardViewModel(private val delegateCallback: Lp3RepeatableKey
         val repeatJob = heldSpecialKeys.remove(key)
         repeatJob?.cancel()
         when (key) {
-            SpecialKey.Caps -> {
+            SpecialKey.UpCase, SpecialKey.DownCase -> {
                 // if we were long-pressing, swallow the release
                 if (repeatJob != null) return
                 capsMode = when (capsMode) {
@@ -99,8 +100,8 @@ class DefaultLp3KeyboardViewModel(private val delegateCallback: Lp3RepeatableKey
 
     override fun onSpecialKeyLongPressed(key: SpecialKey) {
         when (key) {
-            SpecialKey.Caps -> {
-                capsMode = CapsMode.Locked
+            SpecialKey.UpCase, SpecialKey.DownCase -> {
+                capsMode = if (capsMode == CapsMode.Locked) CapsMode.Off else CapsMode.Locked
                 applyLayout()
             }
             else -> {}
