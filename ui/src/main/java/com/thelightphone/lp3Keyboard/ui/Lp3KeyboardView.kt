@@ -1,23 +1,23 @@
 package com.thelightphone.lp3Keyboard.ui
 
 import android.content.Context
+import android.util.AttributeSet
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 
-class Lp3RawKeyboardView(
+open class Lp3RawKeyboardView @JvmOverloads constructor(
     context: Context,
-    private val callback: Lp3KeyboardCallback,
-    options: KeyboardOptions = KeyboardOptions(emptyList(), true, true)
-) :
-    AbstractComposeView(context) {
-    var displayClose: Boolean = options.displayClose
-    var displayReturn: Boolean = options.displayReturn
-    var emojis: List<Emoji>? = options.emojis
-
+    attrs: AttributeSet? = null,
+) : AbstractComposeView(context, attrs) {
+    var callback: Lp3KeyboardCallback? = null
+    var displayClose: Boolean = true
+    var displayReturn: Boolean = true
+    var emojis: List<Emoji>? = emptyList()
     var layout: Layout = LowerCaseLayout
 
     @Composable
     override fun Content() {
+        val cb = callback ?: return
         Lp3Keyboard(
             this.layout,
             KeyboardOptions(
@@ -25,7 +25,7 @@ class Lp3RawKeyboardView(
                 displayClose = this.displayClose,
                 displayReturn = this.displayReturn,
             ),
-            callback
+            cb
         )
     }
 }
