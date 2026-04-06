@@ -78,7 +78,7 @@ fun Lp3Keyboard(layout: Layout, options: KeyboardOptions, callback: Lp3KeyboardC
         Modifier
             .fillMaxWidth()
             .height(LP3_KEYBOARD_HEIGHT_DP.dp)
-            .background(Color.Black) // TODO theme
+            .background(LocalKeyboardColors.current.background)
     ) {
         Column(Modifier.fillMaxSize().padding(top = 4.dp).align(Alignment.Center)) {
             with(layout) { Render(options, callback) }
@@ -111,7 +111,7 @@ fun RowScope.IconKey(
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {
-        Icon(painterResource(drawable), contentDescription = "TODO", tint = Color.White)
+        Icon(painterResource(drawable), contentDescription = "TODO", tint = LocalKeyboardColors.current.foreground)
     }
 }
 
@@ -137,7 +137,7 @@ fun RowScope.SpaceBar(callback: Lp3KeyboardCallback, width: Dp) {
         Box(
             Modifier
                 .height(2.dp)
-                .background(Color.White)
+                .background(LocalKeyboardColors.current.foreground)
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
         )
@@ -194,7 +194,7 @@ fun RowScope.Key(
         val offsetY = if (pressed) (-12).dp else 0.dp
         Text(
             text = buildString { appendCodePoint(code) },
-            color = Color.White,
+            color = LocalKeyboardColors.current.foreground,
             fontFamily = akkuratFamily,
             fontWeight = FontWeight.Normal,
             fontSize = fontSize,
@@ -227,7 +227,7 @@ fun RowScope.MultiLabelKey(
     ) {
         Text(
             text = labelText,
-            color = Color.White,
+            color = LocalKeyboardColors.current.foreground,
             fontFamily = akkuratFamily,
             fontWeight = FontWeight.Normal,
             letterSpacing = 2.sp,
@@ -352,19 +352,33 @@ fun ColumnScope.FinalRow(
     }
 }
 
-@Preview(widthDp = (1080 / 3), heightDp = (1240 / 3))
+private val previewCallback = object : Lp3KeyboardCallback {
+    override fun onKeyPressed(code: Int) = Unit
+    override fun onSpecialKeyPressed(key: SpecialKey) = Unit
+    override fun onKeyReleased(code: Int) = Unit
+    override fun onSpecialKeyReleased(key: SpecialKey) = Unit
+    override fun onKeyLongPressed(code: Int) = Unit
+    override fun onSpecialKeyLongPressed(key: SpecialKey) = Unit
+}
+
+@Preview(name = "Dark", widthDp = (1080 / 3), heightDp = (1240 / 3))
 @Composable
-fun Lp3KeyboardPreview() {
-    val callback = object : Lp3KeyboardCallback {
-        override fun onKeyPressed(code: Int) = Unit
-        override fun onSpecialKeyPressed(key: SpecialKey) = Unit
-        override fun onKeyReleased(code: Int) = Unit
-        override fun onSpecialKeyReleased(key: SpecialKey) = Unit
-        override fun onKeyLongPressed(code: Int) = Unit
-        override fun onSpecialKeyLongPressed(key: SpecialKey) = Unit
+fun Lp3KeyboardDarkPreview() {
+    Lp3KeyboardTheme(DarkKeyboardColors) {
+        Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
+            val options = KeyboardOptions(defaultEmojis, true, true, true)
+            Lp3KeyboardExtended(EmojiLayout, options, previewCallback)
+        }
     }
-    Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
-        val options = KeyboardOptions(defaultEmojis, true, true, true)
-        Lp3KeyboardExtended(EmojiLayout, options, callback)
+}
+
+@Preview(name = "Light", widthDp = (1080 / 3), heightDp = (1240 / 3))
+@Composable
+fun Lp3KeyboardLightPreview() {
+    Lp3KeyboardTheme(LightKeyboardColors) {
+        Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
+            val options = KeyboardOptions(defaultEmojis, true, true, true)
+            Lp3KeyboardExtended(UpperCaseLayout, options, previewCallback)
+        }
     }
 }

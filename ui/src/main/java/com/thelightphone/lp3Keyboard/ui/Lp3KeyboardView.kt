@@ -18,28 +18,34 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
     var displayVoice: Boolean by mutableStateOf(true)
     var emojis: List<Emoji>? by mutableStateOf(defaultEmojis)
     var layout: Layout by mutableStateOf(LowerCaseLayout)
+    var darkMode: Boolean by mutableStateOf(true)
 
     @Composable
     override fun Content() {
         val cb = callback ?: return
-        Lp3Keyboard(
-            this.layout,
-            KeyboardOptions(
-                emojis = this.emojis,
-                displayClose = this.displayClose,
-                displayReturn = this.displayReturn,
-                displayVoice = this.displayVoice
-            ),
-            cb
-        )
+        Lp3KeyboardTheme(if (darkMode) DarkKeyboardColors else LightKeyboardColors) {
+            Lp3Keyboard(
+                this@Lp3RawKeyboardView.layout,
+                KeyboardOptions(
+                    emojis = this@Lp3RawKeyboardView.emojis,
+                    displayClose = this@Lp3RawKeyboardView.displayClose,
+                    displayReturn = this@Lp3RawKeyboardView.displayReturn,
+                    displayVoice = this@Lp3RawKeyboardView.displayVoice
+                ),
+                cb
+            )
+        }
     }
 }
 
 class Lp3KeyboardView(context: Context, private val viewModel: Lp3KeyboardViewModel) :
     AbstractComposeView(context) {
+    var darkMode: Boolean by mutableStateOf(true)
 
     @Composable
     override fun Content() {
-        Lp3KeyboardExtended(viewModel)
+        Lp3KeyboardTheme(if (darkMode) DarkKeyboardColors else LightKeyboardColors) {
+            Lp3KeyboardExtended(viewModel)
+        }
     }
 }

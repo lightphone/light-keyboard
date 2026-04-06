@@ -39,10 +39,11 @@ fun Lp3KeyboardExtended(layout: Layout, options: KeyboardOptions, callback: Lp3K
         EmojiLayout -> true
         else -> false
     }
-    Column(Modifier.fillMaxWidth().height((LP3_KEYBOARD_HEIGHT_DP + 36).dp).background(Color.Black).padding(top=10.dp)) {
+    val colors = LocalKeyboardColors.current
+    Column(Modifier.fillMaxWidth().height((LP3_KEYBOARD_HEIGHT_DP + 36).dp).background(colors.background).padding(top=10.dp)) {
         Lp3Keyboard(layout, options, callback)
         Row(
-            Modifier.weight(1f).fillMaxWidth().background(Color.Black),
+            Modifier.weight(1f).fillMaxWidth().background(colors.background),
             horizontalArrangement = Arrangement.Center
         ) {
             if (showClose) {
@@ -51,7 +52,7 @@ fun Lp3KeyboardExtended(layout: Layout, options: KeyboardOptions, callback: Lp3K
                     contentPadding = PaddingValues(bottom = 14.dp),
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent,
-                        contentColor = Color.White,
+                        contentColor = colors.foreground,
                     )
                 ) {
                     Icon(
