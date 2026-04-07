@@ -11,12 +11,12 @@ import com.thelightphone.lp3Keyboard.ui.LowerCaseLayout
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.NumberLayout
-import com.thelightphone.lp3Keyboard.ui.SpecialCharKeyboard
+import com.thelightphone.lp3Keyboard.ui.ExtendedCharKeyboard
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.SymbolsLayout
 import com.thelightphone.lp3Keyboard.ui.UpperCaseLayout
 import com.thelightphone.lp3Keyboard.ui.defaultEmojis
-import com.thelightphone.lp3Keyboard.ui.specialCharMapping
+import com.thelightphone.lp3Keyboard.ui.extendedCharMapping
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,7 +81,7 @@ class DefaultLp3KeyboardViewModel(
     override fun onKeyReleased(code: Int) {
         heldKeys.remove(code)?.cancel()
         // auto-dismiss when a special key is typed
-        if (layoutFlow.value is SpecialCharKeyboard) {
+        if (layoutFlow.value is ExtendedCharKeyboard) {
             setLayout(previousLayout ?: LowerCaseLayout)
         }
         delegateCallback.onKeyReleased(code)
@@ -130,9 +130,9 @@ class DefaultLp3KeyboardViewModel(
 
     override fun onKeyLongPressed(code: Int) {
         heldKeys[code]?.cancel()
-        if (specialCharMapping.containsKey(code)) {
+        if (extendedCharMapping.containsKey(code)) {
             haptic()
-            setLayout(SpecialCharKeyboard(code))
+            setLayout(ExtendedCharKeyboard(code))
             return
         }
         delegateCallback.onKeyLongPressed(code)

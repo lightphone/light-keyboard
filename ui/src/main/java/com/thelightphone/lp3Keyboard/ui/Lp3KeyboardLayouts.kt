@@ -123,7 +123,7 @@ object EmojiLayout : Layout {
         // current layout supports 3 rows of 8
         val emojiRows = options.emojis?.chunked(8)?.take(3) ?: return
         for (row in emojiRows) {
-            DefaultRow(STANDARD_ROW_HEIGHT_DP.dp) {
+            DefaultRow {
                 for (emoji in row) {
                     Key(emoji, callback, width = MEDIUM_KEY_WIDTH_DP.dp)
                 }
@@ -132,16 +132,16 @@ object EmojiLayout : Layout {
     }
 }
 
-class SpecialCharKeyboard(rootCode: Int) : Layout {
-    private val rows = specialCharMapping[rootCode]
+class ExtendedCharKeyboard(rootCode: Int) : Layout {
+    private val rows = extendedCharMapping[rootCode]
     @Composable
     override fun ColumnScope.Render(
         options: KeyboardOptions,
         callback: Lp3KeyboardCallback
     ) {
-        rows?.forEach { row ->
-            DefaultRow(STANDARD_ROW_HEIGHT_DP.dp) {
-                for (char in row) {
+        rows?.forEach { rowKeys ->
+            DefaultRow {
+                for (char in rowKeys) {
                     Key(char.code, callback, width = MEDIUM_KEY_WIDTH_DP.dp)
                 }
             }
@@ -149,7 +149,7 @@ class SpecialCharKeyboard(rootCode: Int) : Layout {
     }
 }
 
-val specialCharMapping = mapOf(
+val extendedCharMapping = mapOf(
     'A'.code to listOf(
         listOf('À', 'Á', 'Â', 'Ä', 'Æ'),
         listOf('Ã', 'Å', 'Ā', 'Ă', 'Ą'),

@@ -58,6 +58,7 @@ class IMEService : LifecycleInputMethodService(),
     private val vibrator by lazy { getSystemService(Vibrator::class.java) }
 
     private fun tick() {
+        // 50ms feels good on LP#, other device motors may allow faster buzz
         vibrator.vibrate(50)
     }
 

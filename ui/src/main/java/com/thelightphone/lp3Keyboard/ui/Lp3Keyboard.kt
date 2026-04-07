@@ -3,12 +3,10 @@ package com.thelightphone.lp3Keyboard.ui
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -19,27 +17,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.text.iterator
 
 enum class SpecialKey {
     UpCase,
@@ -111,7 +104,11 @@ fun RowScope.IconKey(
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {
-        Icon(painterResource(drawable), contentDescription = "TODO", tint = LocalKeyboardColors.current.foreground)
+        Icon(
+            painterResource(drawable),
+            contentDescription = "TODO",
+            tint = LocalKeyboardColors.current.foreground
+        )
     }
 }
 
@@ -244,8 +241,12 @@ data class KeyboardOptions(
     val displayReturn: Boolean,
     val displayVoice: Boolean
 )
+
 @Composable
-fun ColumnScope.DefaultRow(height: Dp, content: @Composable RowScope.() -> Unit) {
+fun ColumnScope.DefaultRow(
+    height: Dp = STANDARD_ROW_HEIGHT_DP.dp,
+    content: @Composable RowScope.() -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,7 +259,7 @@ fun ColumnScope.DefaultRow(height: Dp, content: @Composable RowScope.() -> Unit)
 
 @Composable
 fun ColumnScope.FirstRow(characters: String, callback: Lp3KeyboardCallback) {
-    DefaultRow(STANDARD_ROW_HEIGHT_DP.dp) {
+    DefaultRow {
         for (char in characters) {
             Key(char, callback)
         }
@@ -277,7 +278,7 @@ fun ColumnScope.ThirdRow(
     callback: Lp3KeyboardCallback,
     leftButton: @Composable RowScope.() -> Unit
 ) {
-    DefaultRow(STANDARD_ROW_HEIGHT_DP.dp) {
+    DefaultRow {
         leftButton()
         if (characters.length == 5) {
             // currently this row only has 5 or 7 chars, so add some space if there are 5
@@ -367,7 +368,7 @@ fun Lp3KeyboardDarkPreview() {
     Lp3KeyboardTheme(DarkKeyboardColors) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
             val options = KeyboardOptions(defaultEmojis, true, true, true)
-            Lp3KeyboardExtended(EmojiLayout, options, previewCallback)
+            Lp3KeyboardWrapper(EmojiLayout, options, previewCallback)
         }
     }
 }
@@ -378,7 +379,7 @@ fun Lp3KeyboardLightPreview() {
     Lp3KeyboardTheme(LightKeyboardColors) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
             val options = KeyboardOptions(defaultEmojis, true, true, true)
-            Lp3KeyboardExtended(UpperCaseLayout, options, previewCallback)
+            Lp3KeyboardWrapper(UpperCaseLayout, options, previewCallback)
         }
     }
 }

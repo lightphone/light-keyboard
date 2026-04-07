@@ -22,25 +22,32 @@ import androidx.compose.ui.unit.dp
 /*
 For using the keyboard outside LightOS. LightOS adds additional UI surrounding the keyboard
 that technically controls it. For example, when the Emoji keyboard is showing, LightOS inserts a
-"close" button at the bottom that sets the keyboard back to "letters" when pressed. This replicates
-that functionality until it is fully replaced within LightOS
+"close" button at the bottom that sets the keyboard back to "letters" when pressed. The Wrapper
+composables provide a place to re-create that behavior when using this as a system keyboard.
+Eventually, we will replace the custom UI in LightOS with this, so we have a single source of truth
  */
 
 @Composable
-fun Lp3KeyboardExtended(viewModel: Lp3KeyboardViewModel) {
+fun Lp3KeyboardWrapper(viewModel: Lp3KeyboardViewModel) {
     val layout by viewModel.layoutFlow.collectAsState()
     val options by viewModel.optionsFlow.collectAsState()
-    Lp3KeyboardExtended(layout, options, viewModel)
+    Lp3KeyboardWrapper(layout, options, viewModel)
 }
 
 @Composable
-fun Lp3KeyboardExtended(layout: Layout, options: KeyboardOptions, callback: Lp3KeyboardCallback) {
+fun Lp3KeyboardWrapper(layout: Layout, options: KeyboardOptions, callback: Lp3KeyboardCallback) {
     val showClose = when (layout) {
-        EmojiLayout, is SpecialCharKeyboard -> true
+        EmojiLayout, is ExtendedCharKeyboard -> true
         else -> false
     }
     val colors = LocalKeyboardColors.current
-    Column(Modifier.fillMaxWidth().height((LP3_KEYBOARD_HEIGHT_DP + 36).dp).background(colors.background).padding(top=10.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height((LP3_KEYBOARD_HEIGHT_DP + 36).dp)
+            .background(colors.background)
+            .padding(top = 10.dp)
+    ) {
         Lp3Keyboard(layout, options, callback)
         Row(
             Modifier.weight(1f).fillMaxWidth().background(colors.background),

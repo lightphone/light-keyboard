@@ -45,7 +45,7 @@ class Lp3KeyboardView(context: Context, private val viewModel: Lp3KeyboardViewMo
     @Composable
     override fun Content() {
         Lp3KeyboardTheme(if (darkMode) DarkKeyboardColors else LightKeyboardColors) {
-            Lp3KeyboardExtended(viewModel)
+            Lp3KeyboardWrapper(viewModel)
         }
     }
 }
