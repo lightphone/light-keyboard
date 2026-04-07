@@ -12,10 +12,11 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : AbstractComposeView(context, attrs) {
+    var displayEmojis: Boolean by mutableStateOf(false)
     var callback: Lp3KeyboardCallback? by mutableStateOf(null)
-    var displayClose: Boolean by mutableStateOf(true)
-    var displayReturn: Boolean by mutableStateOf(true)
-    var displayVoice: Boolean by mutableStateOf(true)
+    var displayClose: Boolean by mutableStateOf(false)
+    var displayReturn: Boolean by mutableStateOf(false)
+    var displayVoice: Boolean by mutableStateOf(false)
     var emojis: List<Emoji>? by mutableStateOf(defaultEmojis)
     var layout: Layout by mutableStateOf(LowerCaseLayout)
     var darkMode: Boolean by mutableStateOf(true)
@@ -27,7 +28,7 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
             Lp3Keyboard(
                 this@Lp3RawKeyboardView.layout,
                 KeyboardOptions(
-                    emojis = this@Lp3RawKeyboardView.emojis,
+                    emojis = if (displayEmojis) this@Lp3RawKeyboardView.emojis else emptyList(),
                     displayClose = this@Lp3RawKeyboardView.displayClose,
                     displayReturn = this@Lp3RawKeyboardView.displayReturn,
                     displayVoice = this@Lp3RawKeyboardView.displayVoice
