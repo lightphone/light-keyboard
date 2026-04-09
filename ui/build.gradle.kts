@@ -8,7 +8,7 @@ plugins {
 }
 
 // for publishing
-val uiVersion = "0.0.2"
+val uiVersion = "0.0.3"
 
 android {
     namespace = "com.thelightphone.lp3Keyboard.ui"
@@ -50,6 +50,7 @@ val localProperties = Properties().apply {
 }
 
 publishing {
+    // TODO signing config
     publications {
         register<MavenPublication>("release") {
             groupId = "com.thelightphone.lp3keyboard"

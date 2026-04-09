@@ -9,9 +9,14 @@ import androidx.compose.ui.unit.dp
 sealed interface Layout {
     @Composable
     fun ColumnScope.Render(options: KeyboardOptions, callback: Lp3KeyboardCallback)
+    val isRootLayout: Boolean
+        get() = false
 }
 
 object LowerCaseLayout : Layout {
+    override val isRootLayout: Boolean
+        get() = true
+
     @Composable
     override fun ColumnScope.Render(
         options: KeyboardOptions,
@@ -35,6 +40,8 @@ object LowerCaseLayout : Layout {
 }
 
 object CapsLockedLayout : Layout {
+    override val isRootLayout: Boolean
+        get() = true
     @Composable
     override fun ColumnScope.Render(
         options: KeyboardOptions,
@@ -58,6 +65,8 @@ object CapsLockedLayout : Layout {
 }
 
 object UpperCaseLayout : Layout {
+    override val isRootLayout: Boolean
+        get() = true
     @Composable
     override fun ColumnScope.Render(
         options: KeyboardOptions,

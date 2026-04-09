@@ -113,6 +113,10 @@ class IMEService : LifecycleInputMethodService(),
                 currentInputConnection?.commitText("\n", 1)
             }
 
+            SpecialKey.Close -> {
+                requestHideSelf(0)
+            }
+
             else -> {}
         }
     }

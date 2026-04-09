@@ -90,6 +90,7 @@ class DefaultLp3KeyboardViewModel(
     override fun onSpecialKeyReleased(key: SpecialKey) {
         val repeatJob = heldSpecialKeys.remove(key)
         repeatJob?.cancel()
+        var consumed = true
         when (key) {
             SpecialKey.UpCase, SpecialKey.DownCase -> {
                 // if we were long-pressing, swallow the release
@@ -103,7 +104,7 @@ class DefaultLp3KeyboardViewModel(
             SpecialKey.Numbers -> {
                 setLayout(NumberLayout)
             }
-            SpecialKey.Letters, SpecialKey.Close -> {
+            SpecialKey.Letters -> {
                 showAlphabetLayout()
             }
             SpecialKey.Symbols -> {
@@ -112,9 +113,20 @@ class DefaultLp3KeyboardViewModel(
             SpecialKey.Emojis -> {
                 setLayout(EmojiLayout)
             }
-            else -> {/*TODO*/}
+            SpecialKey.Close -> {
+                if (!layoutFlow.value.isRootLayout) {
+                    showAlphabetLayout()
+                } else {
+                    consumed = false
+                }
+            }
+            else -> {
+                consumed = false
+            }
         }
-        delegateCallback.onSpecialKeyReleased(key)
+        if (!consumed) {
+            delegateCallback.onSpecialKeyReleased(key)
+        }
     }
 
     /** Called by IME after each character to handle system-requested caps. */

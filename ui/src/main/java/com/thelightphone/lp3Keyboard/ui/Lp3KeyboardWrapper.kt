@@ -36,10 +36,6 @@ fun Lp3KeyboardWrapper(viewModel: Lp3KeyboardViewModel) {
 
 @Composable
 fun Lp3KeyboardWrapper(layout: Layout, options: KeyboardOptions, callback: Lp3KeyboardCallback) {
-    val showClose = when (layout) {
-        EmojiLayout, is ExtendedCharKeyboard -> true
-        else -> false
-    }
     val colors = LocalKeyboardColors.current
     Column(
         modifier = Modifier
@@ -53,20 +49,18 @@ fun Lp3KeyboardWrapper(layout: Layout, options: KeyboardOptions, callback: Lp3Ke
             Modifier.weight(1f).fillMaxWidth().background(colors.background),
             horizontalArrangement = Arrangement.Center
         ) {
-            if (showClose) {
-                Button(
-                    onClick = { callback.onSpecialKeyReleased(SpecialKey.Close) },
-                    contentPadding = PaddingValues(bottom = 14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent,
-                        contentColor = colors.foreground,
-                    )
-                ) {
-                    Icon(
-                        painterResource(R.drawable.down_lp3),
-                        "Close"
-                    )
-                }
+            Button(
+                onClick = { callback.onSpecialKeyReleased(SpecialKey.Close) },
+                contentPadding = PaddingValues(bottom = 14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Transparent,
+                    contentColor = colors.foreground,
+                )
+            ) {
+                Icon(
+                    painterResource(R.drawable.down_lp3),
+                    "Close"
+                )
             }
         }
     }
