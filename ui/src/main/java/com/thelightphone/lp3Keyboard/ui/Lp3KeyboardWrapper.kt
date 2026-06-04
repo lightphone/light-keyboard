@@ -51,18 +51,20 @@ fun Lp3KeyboardWrapper(layout: Layout, options: KeyboardOptions, callback: Lp3Ke
             Modifier.weight(1f).fillMaxWidth().background(colors.background),
             horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = { callback.onSpecialKeyReleased(SpecialKey.Close) },
-                contentPadding = PaddingValues(bottom = 10.dp, top = 4.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Transparent,
-                    contentColor = colors.foreground,
-                )
-            ) {
-                Icon(
-                    painterResource(R.drawable.down_lp3),
-                    "Close"
-                )
+            if (options.displayClose) {
+                Button(
+                    onClick = { callback.onSpecialKeyReleased(SpecialKey.Close) },
+                    contentPadding = PaddingValues(bottom = 10.dp, top = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = colors.foreground,
+                    )
+                ) {
+                    Icon(
+                        painterResource(R.drawable.down_lp3),
+                        "Close"
+                    )
+                }
             }
         }
     }
@@ -73,7 +75,8 @@ fun Lp3KeyboardWrapper(layout: Layout, options: KeyboardOptions, callback: Lp3Ke
 fun Lp3KeyboardWrapperPreview() {
     Lp3KeyboardTheme(DarkKeyboardColors) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
-            val options = KeyboardOptions(defaultEmojis,
+            val options = KeyboardOptions(
+                defaultEmojis,
                 displayClose = true,
                 displayReturn = true,
                 displayVoice = true
