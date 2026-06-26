@@ -1,6 +1,8 @@
 package com.thelightphone.lp3Keyboard.ui
 
+import android.os.SystemClock
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -21,18 +23,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -50,6 +62,7 @@ import com.thelightphone.lp3Keyboard.ui.layout.SwipeConfig
 import com.thelightphone.lp3Keyboard.ui.layout.UpperCaseLayout
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filter
 
 enum class SpecialKey {
     UpCase,
@@ -94,6 +107,10 @@ const val MEDIUM_KEY_WIDTH_DP = STANDARD_KEY_WIDTH_DP + 8
 const val STANDARD_ROW_HEIGHT_DP = 44
 const val STANDARD_KEY_TEXT_SP = 25
 const val MINIMUM_SWIPE_DP = 40
+private const val SWIPE_TRAIL_FADE_MS = 350L
+private const val SWIPE_TRAIL_WIDTH_DP = 6
+
+private data class TrailPoint(val x: Float, val y: Float, val timeMs: Long)
 
 @Composable
 fun Lp3Keyboard(
@@ -106,9 +123,39 @@ fun Lp3Keyboard(
     // Pointer positions inside the swipe gesture are local to this Box, but the
     // letter bounds reported via onGloballyPositioned/boundsInRoot are in the
     // composition root's coordinate space. Track the Box's own root offset so the
-    // swipe handler can reconcile them — needed whenever the keyboard isn't
-    // pinned at the root origin (e.g. embedded above other UI).
+    // swipe handler can reconcile them.
     val boxRootOffset = remember { mutableStateOf(Offset.Zero) }
+    // Live swipe trail. Points carry the uptime they were sampled at, so the
+    // Canvas can fade each segment independently. Points are pruned after the
+    // fade window elapses; the frame ticker idles when the list is empty.
+    val trailPoints = remember { mutableStateListOf<TrailPoint>() }
+    var nowMs by remember { mutableLongStateOf(0L) }
+    val trailColor = LocalKeyboardColors.current.foreground
+    // Reused across draws — rewind() is cheap, allocating a new Path/SkPath
+    // every frame is not.
+    val swipePath = remember { Path() }
+    // Resolve the Akkurat family once and hand it to keys through a
+    // CompositionLocal. lightFontFamily scans SystemFonts.getAvailableFonts(),
+    // which we don't want to run per-key.
+    val context = LocalContext.current
+    val akkurat = remember(context) { lightFontFamily(context) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            // Idle until a gesture starts recording points.
+            snapshotFlow { trailPoints.isNotEmpty() }.filter { it }.first()
+            while (trailPoints.isNotEmpty()) {
+                withFrameNanos { /* tick the frame clock so we recompose */ }
+                nowMs = SystemClock.uptimeMillis()
+                // Clear the whole trail once the newest point has fully faded.
+                // While the gesture is active the newest point is constantly
+                // refreshed so this never trips; once the finger lifts, the
+                // trail fades together and disappears as a unit.
+                val newestAge = nowMs - trailPoints.last().timeMs
+                if (newestAge > SWIPE_TRAIL_FADE_MS) trailPoints.clear()
+            }
+        }
+    }
     Box(
         Modifier
             .fillMaxWidth()
@@ -125,9 +172,22 @@ fun Lp3Keyboard(
                             val xs = ArrayList<Float>()
                             val ys = ArrayList<Float>()
                             val ts = ArrayList<Float>()
+                            // Pointer events on Android are already on
+                            // SystemClock.uptimeMillis, which is the same clock
+                            // the fade ticker reads — so we can store
+                            // change.uptimeMillis directly for the trail.
+                            val pointTimes = ArrayList<Long>()
                             xs.add(down.position.x)
                             ys.add(down.position.y)
                             ts.add(0f)
+                            pointTimes.add(startTime)
+                            // Clear any leftover trail from the previous gesture.
+                            // Do NOT seed it yet — taps jitter a few pixels and
+                            // would render as a dot. We hold the trail back
+                            // until displacement crosses the swipe threshold,
+                            // then backfill so the drawn line starts at the
+                            // touch-down position.
+                            trailPoints.clear()
                             var minX = down.position.x
                             var maxX = down.position.x
                             var minY = down.position.y
@@ -141,16 +201,25 @@ fun Lp3Keyboard(
                                 val p = change.position
                                 xs.add(p.x); ys.add(p.y)
                                 ts.add((change.uptimeMillis - startTime).toFloat())
+                                pointTimes.add(change.uptimeMillis)
                                 if (p.x < minX) minX = p.x
                                 if (p.x > maxX) maxX = p.x
                                 if (p.y < minY) minY = p.y
                                 if (p.y > maxY) maxY = p.y
-                                if (swipeCallback != null && !swipeStarted) {
+                                if (!swipeStarted) {
                                     val displacementPx = maxOf(maxX - minX, maxY - minY)
                                     if (displacementPx >= minSwipePx) {
-                                        swipeCallback.onSwipeStarted()
+                                        swipeCallback?.onSwipeStarted()
                                         swipeStarted = true
+                                        // Backfill the trail with everything collected so far
+                                        // because we only want to start drawing the trail when we're
+                                        // definitely in a swipe
+                                        for (i in xs.indices) {
+                                            trailPoints.add(TrailPoint(xs[i], ys[i], pointTimes[i]))
+                                        }
                                     }
+                                } else {
+                                    trailPoints.add(TrailPoint(p.x, p.y, change.uptimeMillis))
                                 }
                                 if (!change.pressed) break
                             }
@@ -175,14 +244,39 @@ fun Lp3Keyboard(
             )
     ) {
         Column(Modifier.fillMaxSize().padding(top = 4.dp).align(Alignment.Center)) {
-            with(layout) { Render(options, callback) }
+            CompositionLocalProvider(LocalAkkuratFamily provides akkurat) {
+                with(layout) { Render(options, callback) }
+            }
         }
-    }
-    if (swipeConfig != null) {
-        LaunchedEffect(swipeConfig) {
-            swipeConfig.boundsFlow.first()
-            swipeConfig.deriveLayout()?.let { (letters, cx, cy) ->
-                swipeCallback?.onSwipeLayoutReady(letters, cx, cy)
+        if (swipeConfig != null) {
+            Canvas(Modifier.fillMaxSize()) {
+                if (trailPoints.size < 2) return@Canvas
+                // Whole-trail alpha keyed to the newest point's age
+                // tried "comet" effect but overlapping butts looked like dots
+                val newestAge = (nowMs - trailPoints.last().timeMs).coerceAtLeast(0L)
+                val alpha = (1f - newestAge.toFloat() / SWIPE_TRAIL_FADE_MS).coerceIn(0f, 1f)
+                if (alpha <= 0f) return@Canvas
+                swipePath.rewind()
+                swipePath.moveTo(trailPoints[0].x, trailPoints[0].y)
+                for (i in 1 until trailPoints.size) {
+                    swipePath.lineTo(trailPoints[i].x, trailPoints[i].y)
+                }
+                drawPath(
+                    path = swipePath,
+                    color = trailColor.copy(alpha = alpha),
+                    style = Stroke(
+                        width = SWIPE_TRAIL_WIDTH_DP.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round
+                    )
+                )
+            }
+
+            LaunchedEffect(swipeConfig) {
+                swipeConfig.boundsFlow.first()
+                swipeConfig.deriveLayout()?.let { (letters, cx, cy) ->
+                    swipeCallback?.onSwipeLayoutReady(letters, cx, cy)
+                }
             }
         }
     }
@@ -360,7 +454,7 @@ fun RowScope.Key(
         Text(
             text = buildString { appendCodePoint(code) },
             color = LocalKeyboardColors.current.foreground,
-            fontFamily = akkuratFamily,
+            fontFamily = LocalAkkuratFamily.current,
             fontWeight = FontWeight.Normal,
             fontSize = STANDARD_KEY_TEXT_SP.sp,
             modifier = Modifier.then(
@@ -403,7 +497,7 @@ fun RowScope.MultiLabelKey(
         Text(
             text = labelText,
             color = LocalKeyboardColors.current.foreground,
-            fontFamily = akkuratFamily,
+            fontFamily = LocalAkkuratFamily.current,
             fontWeight = FontWeight.Normal,
             letterSpacing = 2.sp,
             fontSize = 16.sp,
