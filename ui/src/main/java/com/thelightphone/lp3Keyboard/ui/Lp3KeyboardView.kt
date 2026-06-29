@@ -7,6 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.AbstractComposeView
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
+import com.thelightphone.lp3Keyboard.ui.layout.LowerCaseLayout
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 
 open class Lp3RawKeyboardView @JvmOverloads constructor(
     context: Context,
@@ -14,9 +18,11 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
 ) : AbstractComposeView(context, attrs) {
     var displayEmojis: Boolean by mutableStateOf(false)
     var callback: Lp3KeyboardCallback? by mutableStateOf(null)
+    var swipeCallback: Lp3KeyboardSwipeCallback<*>? by mutableStateOf(null)
     var displayReturn: Boolean by mutableStateOf(false)
     var displayVoice: Boolean by mutableStateOf(false)
     var enableKeyAnimation: Boolean by mutableStateOf(true)
+    var swipeEnabled: Boolean by mutableStateOf(true)
     var emojis: List<Emoji>? by mutableStateOf(defaultEmojis)
     var layout: Layout by mutableStateOf(LowerCaseLayout)
     var darkMode: Boolean by mutableStateOf(true)
@@ -31,15 +37,17 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
                     emojis = if (displayEmojis) this@Lp3RawKeyboardView.emojis else emptyList(),
                     displayReturn = this@Lp3RawKeyboardView.displayReturn,
                     displayVoice = this@Lp3RawKeyboardView.displayVoice,
-                    enableKeyAnimation = this@Lp3RawKeyboardView.enableKeyAnimation
+                    enableKeyAnimation = this@Lp3RawKeyboardView.enableKeyAnimation,
+                    swipeEnabled = this@Lp3RawKeyboardView.swipeEnabled
                 ),
-                cb
+                cb,
+                swipeCallback
             )
         }
     }
 }
 
-class Lp3KeyboardView(context: Context, private val viewModel: Lp3KeyboardViewModel) :
+class Lp3KeyboardView<T>(context: Context, private val viewModel: Lp3KeyboardViewModel<T>) :
     AbstractComposeView(context) {
     var darkMode: Boolean by mutableStateOf(true)
 

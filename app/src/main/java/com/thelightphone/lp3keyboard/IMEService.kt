@@ -13,29 +13,35 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.thelightphone.lp3Keyboard.ui.DefaultLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
-import com.thelightphone.lp3Keyboard.ui.Lp3RepeatableKeyboardCallback
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
+import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 
 class IMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
     SavedStateRegistryOwner,
     Lp3RepeatableKeyboardCallback {
 
-    private val viewModel: DefaultLp3KeyboardViewModel by lazy {
+    private val viewModel: EnQwertyLp3KeyboardViewModel<*> by lazy {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return DefaultLp3KeyboardViewModel(this@IMEService, ::tick) as T
+                val dummySwipeCallback = object : Lp3KeyboardSwipeCallback<Unit> {}
+                return EnQwertyLp3KeyboardViewModel(
+                    this@IMEService,
+                    dummySwipeCallback,
+                    ::tick
+                ) as T
             }
         }
-        ViewModelProvider(store, factory)[DefaultLp3KeyboardViewModel::class.java]
+        ViewModelProvider(store, factory)[EnQwertyLp3KeyboardViewModel::class.java]
     }
 
     override fun onCreateInputView(): View {
         val view = Lp3KeyboardView(this, viewModel)
-        setCandidatesViewShown(false);
+        setCandidatesViewShown(false)
         window?.window?.apply {
             decorView.let { decorView ->
                 decorView.setViewTreeLifecycleOwner(this@IMEService)
@@ -65,7 +71,7 @@ class IMEService : LifecycleInputMethodService(),
     private val vibrator by lazy { getSystemService(Vibrator::class.java) }
 
     private fun tick() {
-        // 50ms feels good on LP#, other device motors may allow faster buzz
+        // 50ms feels good on LP3, other device motors may allow faster buzz
         vibrator.vibrate(50)
     }
 
@@ -94,6 +100,10 @@ class IMEService : LifecycleInputMethodService(),
     override fun onKeyPressed(code: Int) {
     }
 
+    override fun onSubmitWord(word: CharSequence) {
+        currentInputConnection?.commitText("$word ", 1)
+    }
+
     override fun onSpecialKeyPressed(key: SpecialKey) {
         when (key) {
             SpecialKey.Space -> {
@@ -116,7 +126,8 @@ class IMEService : LifecycleInputMethodService(),
             SpecialKey.Backspace -> {
                 val ic = currentInputConnection ?: return
                 val before = ic.getTextBeforeCursor(1, 0)
-                val charsToDelete = if (before != null && before.isNotEmpty() && Character.isLowSurrogate(before[0])) 2 else 1
+                val charsToDelete =
+                    if (!before.isNullOrEmpty() && Character.isLowSurrogate(before[0])) 2 else 1
                 ic.deleteSurroundingText(charsToDelete, 0)
                 updateCapsMode()
             }
@@ -168,6 +179,7 @@ class IMEService : LifecycleInputMethodService(),
                 currentInputConnection?.commitText(" ", 1)
                 updateCapsMode()
             }
+
             SpecialKey.Backspace -> {
                 deletePrecedingWord()
             }

@@ -1,7 +1,21 @@
-package com.thelightphone.lp3Keyboard.ui
+package com.thelightphone.lp3Keyboard.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
+import com.thelightphone.lp3Keyboard.ui.LayoutOptions
+import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
+import com.thelightphone.lp3Keyboard.ui.SpecialKey
+import com.thelightphone.lp3Keyboard.ui.SpecialKey.Close
+import com.thelightphone.lp3Keyboard.ui.layout.CapsLockedLayout
+import com.thelightphone.lp3Keyboard.ui.layout.EmojiLayout
+import com.thelightphone.lp3Keyboard.ui.layout.ExtendedCharKeyboard
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
+import com.thelightphone.lp3Keyboard.ui.layout.LowerCaseLayout
+import com.thelightphone.lp3Keyboard.ui.layout.NumberLayout
+import com.thelightphone.lp3Keyboard.ui.layout.SymbolsLayout
+import com.thelightphone.lp3Keyboard.ui.layout.UpperCaseLayout
+import com.thelightphone.lp3Keyboard.ui.layout.extendedCharMapping
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,48 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-interface Lp3KeyboardViewModel : Lp3KeyboardCallback {
-    val layoutFlow: StateFlow<Layout>
-    val keyboardOptionsFlow: StateFlow<KeyboardOptions>
-    val layoutOptionsFlow: StateFlow<LayoutOptions>
-}
-
-val defaultEmojis = listOf(
-    "😅",
-    "☺️",
-    "🙃",
-    "😍",
-    "😜",
-    "😂",
-    "😭",
-    "😎",
-    "🙌",
-    "👍",
-    "👎",
-    "🤞",
-    "✌️",
-    "👌",
-    "👋",
-    "🙏",
-    "✨",
-    "🔥",
-    "❤️",
-    "💔",
-    "🏆",
-    "🎯",
-    "👑",
-    "👀"
-).map { it.codePointAt(0) }
-
-enum class CapsMode { Off, Single, Locked }
-
-interface Lp3RepeatableKeyboardCallback : Lp3KeyboardCallback {
-    fun onKeyRepeated(code: Int)
-    fun onSpecialKeyRepeated(specialKey: SpecialKey)
-}
-
-class DefaultLp3KeyboardViewModel(
-    private val delegateCallback: Lp3RepeatableKeyboardCallback,
+class EnQwertyLp3KeyboardViewModel<SwipeResult>(
+    private val passedCallback: Lp3RepeatableKeyboardCallback,
+    private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
     private val haptic: () -> Unit = {},
     initialLayout: Layout = LowerCaseLayout,
     private val optionsForLayout: (Layout) -> LayoutOptions = {
@@ -63,13 +38,18 @@ class DefaultLp3KeyboardViewModel(
             defaultEmojis,
             displayReturn = true,
             displayVoice = true,
-            enableKeyAnimation = true
+            enableKeyAnimation = true,
+            swipeEnabled = false
         )
     )
-) : ViewModel(),
-    Lp3KeyboardViewModel {
+) : ViewModel(), Lp3KeyboardViewModel<SwipeResult> {
     var previousLayout: Layout? = null
         private set
+
+    private var swipeActive = false
+
+    private val delegateCallback: Lp3RepeatableKeyboardCallback?
+        get() = passedCallback.takeUnless { swipeActive }
 
     override val layoutFlow: MutableStateFlow<Layout> = MutableStateFlow(initialLayout)
 
@@ -115,12 +95,12 @@ class DefaultLp3KeyboardViewModel(
             capsMode = CapsMode.Off
             showAlphabetLayout()
         }
-        delegateCallback.onKeyPressed(code)
+        delegateCallback?.onKeyPressed(code)
     }
 
     override fun onSpecialKeyPressed(key: SpecialKey) {
         haptic()
-        delegateCallback.onSpecialKeyPressed(key)
+        delegateCallback?.onSpecialKeyPressed(key)
     }
 
     override fun onKeyReleased(code: Int) {
@@ -132,7 +112,17 @@ class DefaultLp3KeyboardViewModel(
         if (layoutFlow.value is ExtendedCharKeyboard) {
             setLayout(previousLayout ?: LowerCaseLayout)
         }
-        delegateCallback.onKeyReleased(code)
+        delegateCallback?.onKeyReleased(code)
+    }
+
+    override fun onKeyCancelled(code: Int) {
+        // Finger left the key bounds — treat as the start of a swipe (or a
+        // deliberate tap-cancel). Clean up press state but don't fire the IME
+        // release, which is where text actually gets committed.
+        heldKeys.remove(code)?.cancel()
+        if (layoutFlow.value is ExtendedCharKeyboard) {
+            setLayout(previousLayout ?: LowerCaseLayout)
+        }
     }
 
     override fun onSpecialKeyReleased(key: SpecialKey) {
@@ -168,7 +158,7 @@ class DefaultLp3KeyboardViewModel(
                 setLayout(EmojiLayout)
             }
 
-            SpecialKey.Close -> {
+            Close -> {
                 if (!layoutFlow.value.isRootLayout) {
                     showAlphabetLayout()
                 } else {
@@ -181,7 +171,7 @@ class DefaultLp3KeyboardViewModel(
             }
         }
         if (!consumed) {
-            delegateCallback.onSpecialKeyReleased(key)
+            delegateCallback?.onSpecialKeyReleased(key)
         }
     }
 
@@ -204,11 +194,11 @@ class DefaultLp3KeyboardViewModel(
             heldKeys[code] = viewModelScope.launch { }
             return
         }
-        delegateCallback.onKeyLongPressed(code)
+        delegateCallback?.onKeyLongPressed(code)
         heldKeys[code] = viewModelScope.launch {
             while (isActive) {
                 delay(REPEAT_INTERVAL_MS)
-                delegateCallback.onKeyRepeated(code)
+                delegateCallback?.onKeyRepeated(code)
             }
         }
     }
@@ -227,16 +217,50 @@ class DefaultLp3KeyboardViewModel(
             else -> true
         }
         haptic()
-        delegateCallback.onSpecialKeyLongPressed(key)
+        delegateCallback?.onSpecialKeyLongPressed(key)
         if (allowRepeats) {
             heldSpecialKeys[key] = viewModelScope.launch {
                 while (isActive) {
                     delay(REPEAT_INTERVAL_MS)
-                    delegateCallback.onSpecialKeyRepeated(key)
+                    delegateCallback?.onSpecialKeyRepeated(key)
                 }
             }
         }
     }
+
+    override fun onSubmitWord(word: CharSequence) {
+        delegateCallback?.onSubmitWord("$word ")
+    }
+
+    override fun onSwipeStarted() {
+        if (keyboardOptionsFlow.value.swipeEnabled) {
+            swipeActive = true
+        }
+    }
+
+    override fun onSwipeLayoutReady(
+        letters: String,
+        cx: FloatArray,
+        cy: FloatArray
+    ) {
+        swipeCallback.onSwipeLayoutReady(letters, cx, cy)
+    }
+
+    override fun onSwipeCompleted(
+        x: FloatArray,
+        y: FloatArray,
+        t: FloatArray
+    ): List<SwipeResult> {
+        val results = swipeCallback.onSwipeCompleted(x,y,t)
+        swipeActive = false
+        if (results.isNotEmpty()) {
+            swipeCallback.getWordForResult(results[0])
+                ?.let(this::onSubmitWord)
+        }
+        return results
+    }
+
+    override fun getWordForResult(swipeResult: SwipeResult) = swipeCallback.getWordForResult(swipeResult)
 
     override fun onCleared() {
         super.onCleared()

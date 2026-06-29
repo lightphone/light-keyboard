@@ -20,6 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
+import com.thelightphone.lp3Keyboard.ui.layout.UpperCaseLayout
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 
 /*
 For using the keyboard outside LightOS. LightOS adds additional UI surrounding the keyboard
@@ -30,11 +34,11 @@ Eventually, we will replace the custom UI in LightOS with this, so we have a sin
  */
 
 @Composable
-fun Lp3KeyboardWrapper(viewModel: Lp3KeyboardViewModel) {
+fun Lp3KeyboardWrapper(viewModel: Lp3KeyboardViewModel<*>) {
     val layout by viewModel.layoutFlow.collectAsState()
     val keyboardOptions by viewModel.keyboardOptionsFlow.collectAsState()
     val layoutOptions by viewModel.layoutOptionsFlow.collectAsState()
-    Lp3KeyboardWrapper(layout, keyboardOptions, layoutOptions, viewModel)
+    Lp3KeyboardWrapper(layout, keyboardOptions, layoutOptions, viewModel, viewModel)
 }
 
 @Composable
@@ -42,7 +46,8 @@ fun Lp3KeyboardWrapper(
     layout: Layout,
     keyboardOptions: KeyboardOptions,
     layoutOptions: LayoutOptions,
-    callback: Lp3KeyboardCallback
+    callback: Lp3KeyboardCallback,
+    swipeCallback: Lp3KeyboardSwipeCallback<*>?
 ) {
     val colors = LocalKeyboardColors.current
     Column(
@@ -52,7 +57,7 @@ fun Lp3KeyboardWrapper(
             .background(colors.background)
             .padding(top = 10.dp)
     ) {
-        Lp3Keyboard(layout, keyboardOptions, callback)
+        Lp3Keyboard(layout, keyboardOptions, callback, swipeCallback)
         Row(
             Modifier.weight(1f).fillMaxWidth().background(colors.background),
             horizontalArrangement = Arrangement.Center
@@ -85,10 +90,11 @@ fun Lp3KeyboardWrapperPreview() {
                 defaultEmojis,
                 displayReturn = true,
                 displayVoice = true,
-                enableKeyAnimation = true
+                enableKeyAnimation = true,
+                swipeEnabled = true
             )
             val layoutOptions = LayoutOptions(displayCloseButton = true)
-            Lp3KeyboardWrapper(UpperCaseLayout, keyboardOptions, layoutOptions, previewCallback)
+            Lp3KeyboardWrapper(UpperCaseLayout, keyboardOptions, layoutOptions, previewCallback, null)
         }
     }
 }
