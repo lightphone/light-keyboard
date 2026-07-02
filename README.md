@@ -4,6 +4,8 @@ A Compose implementation of the Light Phone's keyboard. To be used in LightOS, c
 
 **Note that as of July 1, 2026, public releases of LightOS are not yet using this as the embedded keyboard. Coming soon!**
 
+If you'd like to contribute/file issues, please read [CONTRIBUTING.md](CONTRIBUTING.md). For general questions/comments about the keyboard, please head to our [discussions](https://github.com/orgs/lightphone/discussions/categories/keyboard) page.
+
 ### Layouts
 
 Currently, only English/QWERTY is supported. We want to add more languages/layouts as soon as possible. Please reach out if there are any you are particularly excited about!
