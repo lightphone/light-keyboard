@@ -8,6 +8,7 @@
 /.idea/markdown.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/vcs.xml
 .kotlin/errors
 .DS_Store
 /build
