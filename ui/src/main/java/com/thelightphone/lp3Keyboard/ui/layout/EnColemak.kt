@@ -1,3 +1,12 @@
+/*
+ * Colemak (English) layout.
+ *
+ * "Colemak is a modern alternative to the QWERTY and Dvorak layouts, designed for efficient and
+ * ergonomic touch typing in English."
+ *
+ * See https://colemak.com
+ */
+
 package com.thelightphone.lp3Keyboard.ui.layout
 
 import androidx.compose.foundation.layout.ColumnScope
