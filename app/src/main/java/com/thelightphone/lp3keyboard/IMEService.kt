@@ -16,7 +16,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
-import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.EnColemakLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 
 class IMEService : LifecycleInputMethodService(),
@@ -24,19 +24,19 @@ class IMEService : LifecycleInputMethodService(),
     SavedStateRegistryOwner,
     Lp3RepeatableKeyboardCallback {
 
-    private val viewModel: EnQwertyLp3KeyboardViewModel<*> by lazy {
+    private val viewModel: EnColemakLp3KeyboardViewModel<*> by lazy {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 val dummySwipeCallback = object : Lp3KeyboardSwipeCallback<Unit> {}
-                return EnQwertyLp3KeyboardViewModel(
+                return EnColemakLp3KeyboardViewModel(
                     this@IMEService,
                     dummySwipeCallback,
                     ::tick
                 ) as T
             }
         }
-        ViewModelProvider(store, factory)[EnQwertyLp3KeyboardViewModel::class.java]
+        ViewModelProvider(store, factory)[EnColemakLp3KeyboardViewModel::class.java]
     }
 
     override fun onCreateInputView(): View {

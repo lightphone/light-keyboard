@@ -36,6 +36,7 @@ private val EnQwertySwipeConfig: SwipeConfig by lazy {
     }
 }
 
+
 object LowerCaseLayout : Layout {
     override val isRootLayout: Boolean
         get() = true
@@ -123,6 +124,7 @@ object UpperCaseLayout : Layout {
         }
     }
 }
+
 
 object NumberLayout : Layout {
     @Composable
