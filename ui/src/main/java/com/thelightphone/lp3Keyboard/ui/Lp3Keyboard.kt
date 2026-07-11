@@ -56,10 +56,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
-import com.thelightphone.lp3Keyboard.ui.layout.EmojiLayout
+import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.layout.SwipeConfig
-import com.thelightphone.lp3Keyboard.ui.layout.UpperCaseLayout
+import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filter
@@ -687,7 +687,7 @@ fun Lp3KeyboardDarkPreview() {
             )
             val layoutOptions = LayoutOptions(displayCloseButton = true)
             Lp3KeyboardWrapper(
-                EmojiLayout,
+                EnShared.EmojiLayout,
                 keyboardOptions,
                 layoutOptions,
                 previewCallback,
@@ -711,7 +711,7 @@ fun Lp3KeyboardLightPreview() {
             )
             val layoutOptions = LayoutOptions(displayCloseButton = true)
             Lp3KeyboardWrapper(
-                UpperCaseLayout,
+                EnQwerty.UpperCaseLayout,
                 keyboardOptions,
                 layoutOptions,
                 previewCallback,

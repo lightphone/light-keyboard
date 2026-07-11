@@ -7,15 +7,9 @@ import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.SpecialKey.Close
-import com.thelightphone.lp3Keyboard.ui.layout.EnColemakCapsLockedLayout
-import com.thelightphone.lp3Keyboard.ui.layout.EmojiLayout
-import com.thelightphone.lp3Keyboard.ui.layout.ExtendedCharKeyboard
+import com.thelightphone.lp3Keyboard.ui.layout.EnColemak
+import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
-import com.thelightphone.lp3Keyboard.ui.layout.EnColemakLowerCaseLayout
-import com.thelightphone.lp3Keyboard.ui.layout.NumberLayout
-import com.thelightphone.lp3Keyboard.ui.layout.SymbolsLayout
-import com.thelightphone.lp3Keyboard.ui.layout.EnColemakUpperCaseLayout
-import com.thelightphone.lp3Keyboard.ui.layout.extendedCharMapping
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +21,7 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
     private val passedCallback: Lp3RepeatableKeyboardCallback,
     private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
     private val haptic: () -> Unit = {},
-    initialLayout: Layout = EnColemakLowerCaseLayout,
+    initialLayout: Layout = EnColemak.LowerCaseLayout,
     private val optionsForLayout: (Layout) -> LayoutOptions = {
         LayoutOptions(
             displayCloseButton = true
@@ -81,9 +75,9 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
     private fun showAlphabetLayout() {
         setLayout(
             when (capsMode) {
-                CapsMode.Off -> EnColemakLowerCaseLayout
-                CapsMode.Single -> EnColemakUpperCaseLayout
-                CapsMode.Locked -> EnColemakCapsLockedLayout
+                CapsMode.Off -> EnColemak.LowerCaseLayout
+                CapsMode.Single -> EnColemak.UpperCaseLayout
+                CapsMode.Locked -> EnColemak.CapsLockedLayout
             }
         )
     }
@@ -109,8 +103,8 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
             return // swallow on key released if held
         }
         // auto-dismiss when a special key is typed
-        if (layoutFlow.value is ExtendedCharKeyboard) {
-            setLayout(previousLayout ?: EnColemakLowerCaseLayout)
+        if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
+            setLayout(previousLayout ?: EnColemak.LowerCaseLayout)
         }
         delegateCallback?.onKeyReleased(code)
     }
@@ -120,8 +114,8 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
         // deliberate tap-cancel). Clean up press state but don't fire the IME
         // release, which is where text actually gets committed.
         heldKeys.remove(code)?.cancel()
-        if (layoutFlow.value is ExtendedCharKeyboard) {
-            setLayout(previousLayout ?: EnColemakLowerCaseLayout)
+        if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
+            setLayout(previousLayout ?: EnColemak.LowerCaseLayout)
         }
     }
 
@@ -143,7 +137,7 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
             }
 
             SpecialKey.Numbers -> {
-                setLayout(NumberLayout)
+                setLayout(EnShared.NumberLayout)
             }
 
             SpecialKey.Letters -> {
@@ -151,11 +145,11 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
             }
 
             SpecialKey.Symbols -> {
-                setLayout(SymbolsLayout)
+                setLayout(EnShared.SymbolsLayout)
             }
 
             SpecialKey.Emojis -> {
-                setLayout(EmojiLayout)
+                setLayout(EnShared.EmojiLayout)
             }
 
             Close -> {
@@ -181,16 +175,16 @@ class EnColemakLp3KeyboardViewModel<SwipeResult>(
         capsMode = if (enabled) CapsMode.Single else CapsMode.Off
         when (layoutFlow.value) {
             // only update the layout if we were already showing letters
-            EnColemakLowerCaseLayout, EnColemakUpperCaseLayout, EnColemakCapsLockedLayout -> showAlphabetLayout()
+            EnColemak.LowerCaseLayout, EnColemak.UpperCaseLayout, EnColemak.CapsLockedLayout -> showAlphabetLayout()
             else -> {}
         }
     }
 
     override fun onKeyLongPressed(code: Int) {
         heldKeys[code]?.cancel()
-        if (extendedCharMapping.containsKey(code)) {
+        if (EnShared.extendedCharMapping.containsKey(code)) {
             haptic()
-            setLayout(ExtendedCharKeyboard(code))
+            setLayout(EnShared.ExtendedCharKeyboard(code))
             heldKeys[code] = viewModelScope.launch { }
             return
         }

@@ -1,12 +1,3 @@
-/*
- * Colemak (English) layout.
- *
- * "Colemak is a modern alternative to the QWERTY and Dvorak layouts, designed for efficient and
- * ergonomic touch typing in English."
- *
- * See https://colemak.com
- */
-
 package com.thelightphone.lp3Keyboard.ui.layout
 
 import androidx.compose.foundation.layout.ColumnScope
@@ -45,90 +36,100 @@ private val EnColemakSwipeConfig: SwipeConfig by lazy {
     }
 }
 
-object EnColemakLowerCaseLayout : Layout {
-    override val isRootLayout: Boolean
-        get() = true
+/**
+ * The layouts for English Colemak.
+ *
+ * "Colemak is a modern alternative to the QWERTY and Dvorak layouts, designed for efficient and
+ * ergonomic touch typing in English."
+ *
+ * See https://colemak.com
+ */
+object EnColemak {
+    object LowerCaseLayout : Layout {
+        override val isRootLayout: Boolean
+            get() = true
 
-    override val swipeConfig: SwipeConfig
-        get() = EnColemakSwipeConfig
+        override val swipeConfig: SwipeConfig
+            get() = EnColemakSwipeConfig
 
-    @Composable
-    override fun ColumnScope.Render(
-        options: KeyboardOptions,
-        callback: Lp3KeyboardCallback
-    ) {
-        FirstRow("qwfpgjluy", callback, swipeConfig, options.enableKeyAnimation)
-        SecondRow("arstdhneio", callback, swipeConfig, options.enableKeyAnimation)
-        ThirdRow("zxcvbkm", callback, swipeConfig, options) {
-            IconKey(
-                R.drawable.up_lp3,
-                SpecialKey.UpCase,
-                callback,
-                options.enableKeyAnimation,
-                width = ICON_KEY_WIDTH_DP.dp,
-                modifier = Modifier.padding(12.dp).padding(bottom = 6.dp, end = 8.dp)
-            )
-        }
-        FinalRow(options, callback) {
-            MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
-        }
-    }
-}
-
-object EnColemakCapsLockedLayout : Layout {
-    override val isRootLayout: Boolean
-        get() = true
-    override val swipeConfig: SwipeConfig
-        get() = EnColemakSwipeConfig
-
-    @Composable
-    override fun ColumnScope.Render(
-        options: KeyboardOptions,
-        callback: Lp3KeyboardCallback
-    ) {
-        FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
-        SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
-        ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
-            IconKey(
-                R.drawable.caps_lp3,
-                SpecialKey.DownCase,
-                callback,
-                options.enableKeyAnimation,
-                width = ICON_KEY_WIDTH_DP.dp,
-                modifier = Modifier.padding(9.dp).padding(bottom = 2.dp, end = 4.dp)
-            )
-        }
-        FinalRow(options, callback) {
-            MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
+        @Composable
+        override fun ColumnScope.Render(
+            options: KeyboardOptions,
+            callback: Lp3KeyboardCallback
+        ) {
+            FirstRow("qwfpgjluy", callback, swipeConfig, options.enableKeyAnimation)
+            SecondRow("arstdhneio", callback, swipeConfig, options.enableKeyAnimation)
+            ThirdRow("zxcvbkm", callback, swipeConfig, options) {
+                IconKey(
+                    R.drawable.up_lp3,
+                    SpecialKey.UpCase,
+                    callback,
+                    options.enableKeyAnimation,
+                    width = ICON_KEY_WIDTH_DP.dp,
+                    modifier = Modifier.padding(12.dp).padding(bottom = 6.dp, end = 8.dp)
+                )
+            }
+            FinalRow(options, callback) {
+                MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
+            }
         }
     }
-}
 
-object EnColemakUpperCaseLayout : Layout {
-    override val isRootLayout: Boolean
-        get() = true
-    override val swipeConfig: SwipeConfig
-        get() = EnColemakSwipeConfig
+    object CapsLockedLayout : Layout {
+        override val isRootLayout: Boolean
+            get() = true
+        override val swipeConfig: SwipeConfig
+            get() = EnColemakSwipeConfig
 
-    @Composable
-    override fun ColumnScope.Render(
-        options: KeyboardOptions,
-        callback: Lp3KeyboardCallback
-    ) {
-        FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
-        SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
-        ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
-            IconKey(
-                R.drawable.down_lp3,
-                SpecialKey.DownCase,
-                callback,
-                options.enableKeyAnimation,
-                width = ICON_KEY_WIDTH_DP.dp,
-                modifier = Modifier.padding(12.dp).padding(bottom = 6.dp, end = 8.dp)
-            )
+        @Composable
+        override fun ColumnScope.Render(
+            options: KeyboardOptions,
+            callback: Lp3KeyboardCallback
+        ) {
+            FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
+            SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
+            ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
+                IconKey(
+                    R.drawable.caps_lp3,
+                    SpecialKey.DownCase,
+                    callback,
+                    options.enableKeyAnimation,
+                    width = ICON_KEY_WIDTH_DP.dp,
+                    modifier = Modifier.padding(9.dp).padding(bottom = 2.dp, end = 4.dp)
+                )
+            }
+            FinalRow(options, callback) {
+                MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
+            }
         }
-        FinalRow(options, callback) {
-            MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
+    }
+
+    object UpperCaseLayout : Layout {
+        override val isRootLayout: Boolean
+            get() = true
+        override val swipeConfig: SwipeConfig
+            get() = EnColemakSwipeConfig
+
+        @Composable
+        override fun ColumnScope.Render(
+            options: KeyboardOptions,
+            callback: Lp3KeyboardCallback
+        ) {
+            FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
+            SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
+            ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
+                IconKey(
+                    R.drawable.down_lp3,
+                    SpecialKey.DownCase,
+                    callback,
+                    options.enableKeyAnimation,
+                    width = ICON_KEY_WIDTH_DP.dp,
+                    modifier = Modifier.padding(12.dp).padding(bottom = 6.dp, end = 8.dp)
+                )
+            }
+            FinalRow(options, callback) {
+                MultiLabelKey("123", SpecialKey.Numbers, callback, options.enableKeyAnimation)
+            }
         }
     }
 }

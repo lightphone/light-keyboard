@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.AbstractComposeView
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
-import com.thelightphone.lp3Keyboard.ui.layout.LowerCaseLayout
+import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 
@@ -24,7 +24,7 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
     var enableKeyAnimation: Boolean by mutableStateOf(true)
     var swipeEnabled: Boolean by mutableStateOf(true)
     var emojis: List<Emoji>? by mutableStateOf(defaultEmojis)
-    var layout: Layout by mutableStateOf(LowerCaseLayout)
+    var layout: Layout by mutableStateOf(EnQwerty.LowerCaseLayout)
     var darkMode: Boolean by mutableStateOf(true)
 
     @Composable
