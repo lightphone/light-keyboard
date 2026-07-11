@@ -6,22 +6,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
-import com.thelightphone.lp3Keyboard.ui.DefaultRow
 import com.thelightphone.lp3Keyboard.ui.FinalRow
 import com.thelightphone.lp3Keyboard.ui.FirstRow
 import com.thelightphone.lp3Keyboard.ui.ICON_KEY_WIDTH_DP
 import com.thelightphone.lp3Keyboard.ui.IconKey
-import com.thelightphone.lp3Keyboard.ui.Key
 import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardLayoutCapture
-import com.thelightphone.lp3Keyboard.ui.MEDIUM_KEY_WIDTH_DP
 import com.thelightphone.lp3Keyboard.ui.MultiLabelKey
 import com.thelightphone.lp3Keyboard.ui.R
 import com.thelightphone.lp3Keyboard.ui.SecondRow
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.ThirdRow
-import kotlin.collections.chunked
 
 private val EnColemakSwipeConfig: SwipeConfig by lazy {
     object : Lp3KeyboardLayoutCapture("abcdefghijklmnopqrstuvwxyz") {

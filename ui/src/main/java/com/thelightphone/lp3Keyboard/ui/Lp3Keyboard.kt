@@ -42,12 +42,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,14 +56,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
+import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.layout.SwipeConfig
-import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 
 enum class SpecialKey {
     UpCase,

@@ -20,8 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 

@@ -7,9 +7,8 @@ import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.SpecialKey.Close
-import com.thelightphone.lp3Keyboard.ui.layout.Layout
-import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.layout.EnShared
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

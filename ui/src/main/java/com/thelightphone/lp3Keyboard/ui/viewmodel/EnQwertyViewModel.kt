@@ -1,20 +1,9 @@
 package com.thelightphone.lp3Keyboard.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
 import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
-import com.thelightphone.lp3Keyboard.ui.SpecialKey
-import com.thelightphone.lp3Keyboard.ui.SpecialKey.Close
-import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import com.thelightphone.lp3Keyboard.ui.layout.Layout
 
 class EnQwertyLp3KeyboardViewModel<SwipeResult>(
     private val passedCallback: Lp3RepeatableKeyboardCallback,
