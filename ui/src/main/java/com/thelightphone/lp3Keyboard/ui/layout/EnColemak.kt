@@ -57,7 +57,7 @@ object EnColemak {
             options: KeyboardOptions,
             callback: Lp3KeyboardCallback
         ) {
-            FirstRow("qwfpgjluy", callback, swipeConfig, options.enableKeyAnimation)
+            FirstRow("qwfpgjluy'", callback, swipeConfig, options.enableKeyAnimation)
             SecondRow("arstdhneio", callback, swipeConfig, options.enableKeyAnimation)
             ThirdRow("zxcvbkm", callback, swipeConfig, options) {
                 IconKey(
@@ -86,7 +86,7 @@ object EnColemak {
             options: KeyboardOptions,
             callback: Lp3KeyboardCallback
         ) {
-            FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
+            FirstRow("QWFPGJLUY\"", callback, swipeConfig, options.enableKeyAnimation)
             SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
             ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
                 IconKey(
@@ -115,7 +115,7 @@ object EnColemak {
             options: KeyboardOptions,
             callback: Lp3KeyboardCallback
         ) {
-            FirstRow("QWFPGJLUY", callback, swipeConfig, options.enableKeyAnimation)
+            FirstRow("QWFPGJLUY\"", callback, swipeConfig, options.enableKeyAnimation)
             SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
             ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
                 IconKey(

@@ -558,10 +558,6 @@ fun ColumnScope.FirstRow(
         for (char in characters) {
             Key(char, callback, swipeConfig, enableKeyAnimation)
         }
-        if (characters.length == 9) {
-            // currently this row only has 9 or 10 chars, so add space to left-align if only 9
-            Spacer(Modifier.width(STANDARD_KEY_WIDTH_DP.dp))
-        }
     }
 }
 
