@@ -17,11 +17,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class EnQwertyLp3KeyboardViewModel<SwipeResult>(
+/**
+ * An abstract view model for the base, shared logic for English keyboards.
+ *
+ * Typically, setting initial, lower, upper, and capslock layouts is enough to define a standard
+ * English keyboard.
+ */
+abstract class EnBaseViewModel<SwipeResult>(
     private val passedCallback: Lp3RepeatableKeyboardCallback,
     private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
     private val haptic: () -> Unit = {},
-    initialLayout: Layout = EnQwerty.LowerCaseLayout,
     private val optionsForLayout: (Layout) -> LayoutOptions = {
         LayoutOptions(
             displayCloseButton = true
@@ -35,8 +40,13 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
             enableKeyAnimation = true,
             swipeEnabled = false
         )
-    )
+    ),
+    val initialLayout: Layout,
+    val lowerCaseLayout: Layout,
+    val upperCaseLayout: Layout,
+    val capsLockedLayout: Layout,
 ) : ViewModel(), Lp3KeyboardViewModel<SwipeResult> {
+
     var previousLayout: Layout? = null
         private set
 
@@ -75,9 +85,9 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
     private fun showAlphabetLayout() {
         setLayout(
             when (capsMode) {
-                CapsMode.Off -> EnQwerty.LowerCaseLayout
-                CapsMode.Single -> EnQwerty.UpperCaseLayout
-                CapsMode.Locked -> EnQwerty.CapsLockedLayout
+                CapsMode.Off -> lowerCaseLayout
+                CapsMode.Single -> upperCaseLayout
+                CapsMode.Locked -> capsLockedLayout
             }
         )
     }
@@ -104,7 +114,7 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
         }
         // auto-dismiss when a special key is typed
         if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
-            setLayout(previousLayout ?: EnQwerty.LowerCaseLayout)
+            setLayout(previousLayout ?: lowerCaseLayout)
         }
         delegateCallback?.onKeyReleased(code)
     }
@@ -115,7 +125,7 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
         // release, which is where text actually gets committed.
         heldKeys.remove(code)?.cancel()
         if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
-            setLayout(previousLayout ?: EnQwerty.LowerCaseLayout)
+            setLayout(previousLayout ?: lowerCaseLayout)
         }
     }
 
@@ -175,7 +185,7 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
         capsMode = if (enabled) CapsMode.Single else CapsMode.Off
         when (layoutFlow.value) {
             // only update the layout if we were already showing letters
-            EnQwerty.LowerCaseLayout, EnQwerty.UpperCaseLayout, EnQwerty.CapsLockedLayout -> showAlphabetLayout()
+            lowerCaseLayout, upperCaseLayout, capsLockedLayout -> showAlphabetLayout()
             else -> {}
         }
     }
