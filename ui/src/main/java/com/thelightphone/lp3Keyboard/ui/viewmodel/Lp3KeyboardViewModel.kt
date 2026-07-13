@@ -12,6 +12,10 @@ interface Lp3KeyboardViewModel<SwipeResultType> : Lp3KeyboardCallback, Lp3Keyboa
     val layoutFlow: StateFlow<Layout>
     val keyboardOptionsFlow: StateFlow<KeyboardOptions>
     val layoutOptionsFlow: StateFlow<LayoutOptions>
+    fun cancelHeldKeys()
+
+    /** Called by the IME after each character to handle system-requested caps. */
+    fun setCapsMode(enabled: Boolean)
 }
 
 val defaultEmojis = listOf(

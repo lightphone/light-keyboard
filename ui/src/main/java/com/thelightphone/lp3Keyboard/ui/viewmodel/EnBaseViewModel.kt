@@ -71,7 +71,7 @@ abstract class EnBaseViewModel<SwipeResult>(
     private val heldSpecialKeys = mutableMapOf<SpecialKey, Job>()
     private val heldKeys = mutableMapOf<Int, Job>()
 
-    fun cancelHeldKeys() {
+    override fun cancelHeldKeys() {
         heldSpecialKeys.values.forEach { it.cancel() }
         heldSpecialKeys.clear()
         heldKeys.values.forEach { it.cancel() }
@@ -179,7 +179,7 @@ abstract class EnBaseViewModel<SwipeResult>(
     }
 
     /** Called by IME after each character to handle system-requested caps. */
-    fun setCapsMode(enabled: Boolean) {
+    override fun setCapsMode(enabled: Boolean) {
         if (capsMode == CapsMode.Locked) return
         capsMode = if (enabled) CapsMode.Single else CapsMode.Off
         when (layoutFlow.value) {
