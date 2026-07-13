@@ -6,10 +6,10 @@ import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 
 class EnQwertyLp3KeyboardViewModel<SwipeResult>(
-    private val passedCallback: Lp3RepeatableKeyboardCallback,
-    private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
-    private val haptic: () -> Unit = {},
-    private val optionsForLayout: (Layout) -> LayoutOptions = {
+    passedCallback: Lp3RepeatableKeyboardCallback,
+    swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
+    haptic: () -> Unit = {},
+    optionsForLayout: (Layout) -> LayoutOptions = {
         LayoutOptions(
             displayCloseButton = true
         )
@@ -23,4 +23,4 @@ class EnQwertyLp3KeyboardViewModel<SwipeResult>(
     lowerCaseLayout = EnQwerty.LowerCaseLayout,
     upperCaseLayout = EnQwerty.UpperCaseLayout,
     capsLockedLayout = EnQwerty.CapsLockedLayout,
-) { }
+)

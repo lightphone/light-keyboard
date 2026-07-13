@@ -39,6 +39,11 @@ private val EnColemakSwipeConfig: SwipeConfig by lazy {
  * ergonomic touch typing in English."
  *
  * See https://colemak.com
+ *
+ * To keep the top row right-aligned to avoid a strangly skewed layout, the upper right key is
+ * filled with `'` lower/caps and `"` shifted. This is where `;` is on Colemak, but as that's a
+ * rarely used key, one of the most common symbols is used. For analysis and rational, see
+ * https://github.com/lightphone/light-keyboard/pull/4#pullrequestreview-4675526031
  */
 object EnColemak {
     object LowerCaseLayout : Layout {
@@ -82,7 +87,7 @@ object EnColemak {
             options: KeyboardOptions,
             callback: Lp3KeyboardCallback
         ) {
-            FirstRow("QWFPGJLUY\"", callback, swipeConfig, options.enableKeyAnimation)
+            FirstRow("QWFPGJLUY'", callback, swipeConfig, options.enableKeyAnimation)
             SecondRow("ARSTDHNEIO", callback, swipeConfig, options.enableKeyAnimation)
             ThirdRow("ZXCVBKM", callback, swipeConfig, options) {
                 IconKey(
