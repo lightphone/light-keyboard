@@ -1,9 +1,11 @@
 package com.thelightphone.lp3keyboard
 
+import android.content.SharedPreferences
 import android.os.Vibrator
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -16,7 +18,9 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
-import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
+import com.thelightphone.lp3Keyboard.ui.layout.buildRootViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 
 class IMEService : LifecycleInputMethodService(),
@@ -24,40 +28,70 @@ class IMEService : LifecycleInputMethodService(),
     SavedStateRegistryOwner,
     Lp3RepeatableKeyboardCallback {
 
-    private val viewModel: EnQwertyLp3KeyboardViewModel<*> by lazy {
+    private var renderedLayout: LayoutRegistryItem? = null
+    private var viewModel: Lp3KeyboardViewModel<*>? = null
+
+    private var layoutPrefs: SharedPreferences? = null
+    private val layoutChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == LayoutPreferences.KEY_ACTIVE_LAYOUT) {
+                refreshLayoutIfNeeded()
+            }
+        }
+
+    private fun refreshLayoutIfNeeded() {
+        if (LayoutPreferences.getActiveLayout(this) != renderedLayout) {
+            setInputView(onCreateInputView())
+        }
+    }
+
+    private fun buildViewModel(layout: LayoutRegistryItem): Lp3KeyboardViewModel<*> {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val dummySwipeCallback = object : Lp3KeyboardSwipeCallback<Unit> {}
-                return EnQwertyLp3KeyboardViewModel(
+                return layout.buildRootViewModel(
                     this@IMEService,
                     dummySwipeCallback,
                     ::tick
                 ) as T
             }
         }
-        ViewModelProvider(store, factory)[EnQwertyLp3KeyboardViewModel::class.java]
+        // Key by the layout's uniqueId so each layout gets its own retained ViewModel instance.
+        return ViewModelProvider(store, factory)[layout.uniqueId, ViewModel::class.java]
+                as Lp3KeyboardViewModel<*>
     }
 
     override fun onCreateInputView(): View {
-        val view = Lp3KeyboardView(this, viewModel)
+        val layout = LayoutPreferences.getActiveLayout(this)
+        val vm = buildViewModel(layout)
+        renderedLayout = layout
+        viewModel = vm
+        val view = Lp3KeyboardView(this, vm)
         setCandidatesViewShown(false)
-        window?.window?.apply {
-            decorView.let { decorView ->
-                decorView.setViewTreeLifecycleOwner(this@IMEService)
-                decorView.setViewTreeViewModelStoreOwner(this@IMEService)
-                decorView.setViewTreeSavedStateRegistryOwner(this@IMEService)
+        window?.window?.let {
+            it.decorView.apply {
+                setViewTreeLifecycleOwner(this@IMEService)
+                setViewTreeViewModelStoreOwner(this@IMEService)
+                setViewTreeSavedStateRegistryOwner(this@IMEService)
             }
         }
         return view
     }
 
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        refreshLayoutIfNeeded()
+    }
+
     override fun onCreate() {
         super.onCreate()
         savedStateRegistryController.performRestore(null)
+        layoutPrefs = LayoutPreferences.registerOnChange(this, layoutChangeListener)
     }
 
     override fun onDestroy() {
+        layoutPrefs?.unregisterOnSharedPreferenceChangeListener(layoutChangeListener)
         store.clear()
         super.onDestroy()
     }
@@ -81,7 +115,7 @@ class IMEService : LifecycleInputMethodService(),
 
     override fun onWindowHidden() {
         super.onWindowHidden()
-        viewModel.cancelHeldKeys()
+        viewModel?.cancelHeldKeys()
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -94,7 +128,7 @@ class IMEService : LifecycleInputMethodService(),
         val ei = currentInputEditorInfo ?: return
         // might be set if the TextField is set to capitalize sentence starts, for example
         val caps = ic.getCursorCapsMode(ei.inputType)
-        viewModel.setCapsMode(caps != 0)
+        viewModel?.setCapsMode(caps != 0)
     }
 
     override fun onKeyPressed(code: Int) {

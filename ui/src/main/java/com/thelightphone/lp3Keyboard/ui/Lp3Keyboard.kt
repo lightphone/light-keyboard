@@ -321,15 +321,18 @@ fun RowScope.IconKey(
     width: Dp = STANDARD_KEY_WIDTH_DP.dp
 ) {
     var pressed by remember { mutableStateOf(false) }
+    val onPressed = remember(key, callback) { { callback.onSpecialKeyPressed(key) } }
+    val onReleased = remember(key, callback) { { callback.onSpecialKeyReleased(key) } }
+    val onLongPressed = remember(key, callback) { { callback.onSpecialKeyLongPressed(key) } }
     Box(
         modifier = Modifier
             .width(width)
             .fillMaxHeight()
             .keyInput(
                 inputKey = key,
-                onPressed = { callback.onSpecialKeyPressed(key) },
-                onReleased = { callback.onSpecialKeyReleased(key) },
-                onLongPressed = { callback.onSpecialKeyLongPressed(key) },
+                onPressed = onPressed,
+                onReleased = onReleased,
+                onLongPressed = onLongPressed,
                 onPressedChanged = { pressed = it }
             )
             .then(modifier),
@@ -359,6 +362,9 @@ fun RowScope.IconKey(
 @Composable
 fun RowScope.SpaceBar(callback: Lp3KeyboardCallback, width: Dp, enableKeyAnimation: Boolean) {
     var pressed by remember { mutableStateOf(false) }
+    val onPressed = remember(callback) { { callback.onSpecialKeyPressed(SpecialKey.Space) } }
+    val onReleased = remember(callback) { { callback.onSpecialKeyReleased(SpecialKey.Space) } }
+    val onLongPressed = remember(callback) { { callback.onSpecialKeyLongPressed(SpecialKey.Space) } }
     Box(
         Modifier
             .fillMaxHeight()
@@ -366,9 +372,9 @@ fun RowScope.SpaceBar(callback: Lp3KeyboardCallback, width: Dp, enableKeyAnimati
             .padding(bottom = 6.dp)
             .keyInput(
                 inputKey = Unit,
-                onPressed = { callback.onSpecialKeyPressed(SpecialKey.Space) },
-                onReleased = { callback.onSpecialKeyReleased(SpecialKey.Space) },
-                onLongPressed = { callback.onSpecialKeyLongPressed(SpecialKey.Space) },
+                onPressed = onPressed,
+                onReleased = onReleased,
+                onLongPressed = onLongPressed,
                 onPressedChanged = { pressed = it }
             ).then(
                 if (enableKeyAnimation) {
@@ -412,25 +418,34 @@ fun RowScope.Key(
     width: Dp = STANDARD_KEY_WIDTH_DP.dp
 ) {
     var pressed by remember { mutableStateOf(false) }
+    val label = remember(code) { buildString { appendCodePoint(code) } }
 
-    val onPressed = override
-        ?.let { { callback.onSpecialKeyPressed(it) } }
-        ?: { callback.onKeyPressed(code) }
+    val onPressed = remember(code, override, callback) {
+        override
+            ?.let { { callback.onSpecialKeyPressed(it) } }
+            ?: { callback.onKeyPressed(code) }
+    }
 
-    val onReleased = override
-        ?.let { { callback.onSpecialKeyReleased(it) } }
-        ?: { callback.onKeyReleased(code) }
+    val onReleased = remember(code, override, callback) {
+        override
+            ?.let { { callback.onSpecialKeyReleased(it) } }
+            ?: { callback.onKeyReleased(code) }
+    }
 
-    val onLongPressed = override
-        ?.let { { callback.onSpecialKeyLongPressed(it) } }
-        ?: { callback.onKeyLongPressed(code) }
+    val onLongPressed = remember(code, override, callback) {
+        override
+            ?.let { { callback.onSpecialKeyLongPressed(it) } }
+            ?: { callback.onKeyLongPressed(code) }
+    }
 
     // Drag-off (pointer leaves the key bounds): for letter keys this is the
     // start of a potential swipe — route to onKeyCancelled so the IME doesn't
     // commit the character. Special-key overrides keep release semantics.
-    val onCancelled = override
-        ?.let { { callback.onSpecialKeyReleased(it) } }
-        ?: { callback.onKeyCancelled(code) }
+    val onCancelled = remember(code, override, callback) {
+        override
+            ?.let { { callback.onSpecialKeyReleased(it) } }
+            ?: { callback.onKeyCancelled(code) }
+    }
 
     Box(
         modifier = Modifier
@@ -452,7 +467,7 @@ fun RowScope.Key(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = buildString { appendCodePoint(code) },
+            text = label,
             color = LocalKeyboardColors.current.foreground,
             fontFamily = LocalAkkuratFamily.current,
             fontWeight = FontWeight.Normal,
@@ -481,15 +496,18 @@ fun RowScope.MultiLabelKey(
     enableKeyAnimation: Boolean
 ) {
     var pressed by remember { mutableStateOf(false) }
+    val onPressed = remember(key, callback) { { callback.onSpecialKeyPressed(key) } }
+    val onReleased = remember(key, callback) { { callback.onSpecialKeyReleased(key) } }
+    val onLongPressed = remember(key, callback) { { callback.onSpecialKeyLongPressed(key) } }
     Box(
         modifier = Modifier
             .width(ICON_KEY_WIDTH_DP.dp)
             .fillMaxHeight()
             .keyInput(
                 inputKey = labelText,
-                onPressed = { callback.onSpecialKeyPressed(key) },
-                onReleased = { callback.onSpecialKeyReleased(key) },
-                onLongPressed = { callback.onSpecialKeyLongPressed(key) },
+                onPressed = onPressed,
+                onReleased = onReleased,
+                onLongPressed = onLongPressed,
                 onPressedChanged = { pressed = it }
             ),
         contentAlignment = BiasAlignment(-0.2f, 0.2f)
