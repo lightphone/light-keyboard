@@ -93,11 +93,6 @@ abstract class EnBaseViewModel<SwipeResult>(
 
     override fun onKeyPressed(code: Int) {
         haptic()
-        // eagerly drop single-caps so fast typists see lowercase before the IME round-trip
-        if (capsMode == CapsMode.Single) {
-            capsMode = CapsMode.Off
-            showAlphabetLayout()
-        }
         delegateCallback?.onKeyPressed(code)
     }
 
@@ -110,6 +105,11 @@ abstract class EnBaseViewModel<SwipeResult>(
         heldKeys.remove(code)?.apply {
             cancel()
             return // swallow on key released if held
+        }
+        // eagerly drop single-caps so fast typists see lowercase before the IME round-trip
+        if (capsMode == CapsMode.Single) {
+            capsMode = CapsMode.Off
+            showAlphabetLayout()
         }
         // auto-dismiss when a special key is typed
         if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
