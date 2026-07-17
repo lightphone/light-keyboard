@@ -34,11 +34,21 @@ Eventually, we will replace the custom UI in LightOS with this, so we have a sin
  */
 
 @Composable
-fun Lp3KeyboardWrapper(viewModel: Lp3KeyboardViewModel<*>) {
+fun Lp3KeyboardWrapper(
+    viewModel: Lp3KeyboardViewModel<*>,
+    handleHardwareKeyboardInput: Boolean = true
+) {
     val layout by viewModel.layoutFlow.collectAsState()
     val keyboardOptions by viewModel.keyboardOptionsFlow.collectAsState()
     val layoutOptions by viewModel.layoutOptionsFlow.collectAsState()
-    Lp3KeyboardWrapper(layout, keyboardOptions, layoutOptions, viewModel, viewModel)
+    Lp3KeyboardWrapper(
+        layout,
+        keyboardOptions,
+        layoutOptions,
+        viewModel,
+        viewModel,
+        handleHardwareKeyboardInput
+    )
 }
 
 @Composable
@@ -47,7 +57,8 @@ fun Lp3KeyboardWrapper(
     keyboardOptions: KeyboardOptions,
     layoutOptions: LayoutOptions,
     callback: Lp3KeyboardCallback,
-    swipeCallback: Lp3KeyboardSwipeCallback<*>?
+    swipeCallback: Lp3KeyboardSwipeCallback<*>?,
+    handleHardwareKeyboardInput: Boolean = true
 ) {
     val colors = LocalKeyboardColors.current
     Column(
@@ -56,6 +67,13 @@ fun Lp3KeyboardWrapper(
             .height((LP3_KEYBOARD_HEIGHT_DP + 36).dp)
             .background(colors.background)
             .padding(top = 10.dp)
+            .then(
+                if (handleHardwareKeyboardInput) {
+                    Modifier.hardwareKeyboardInput(callback)
+                } else {
+                    Modifier
+                }
+            )
     ) {
         Lp3Keyboard(layout, keyboardOptions, callback, swipeCallback)
         Row(

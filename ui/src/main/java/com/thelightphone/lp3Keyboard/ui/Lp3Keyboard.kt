@@ -36,6 +36,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -249,7 +250,7 @@ fun Lp3Keyboard(
             }
         }
         if (swipeConfig != null) {
-            Canvas(Modifier.fillMaxSize()) {
+            Canvas(Modifier.fillMaxSize().clipToBounds()) {
                 if (trailPoints.size < 2) return@Canvas
                 // Whole-trail alpha keyed to the newest point's age
                 // tried "comet" effect but overlapping butts looked like dots

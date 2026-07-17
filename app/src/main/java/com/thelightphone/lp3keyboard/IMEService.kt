@@ -53,7 +53,7 @@ class IMEService : LifecycleInputMethodService(),
                 return layout.buildRootViewModel(
                     this@IMEService,
                     dummySwipeCallback,
-                    ::tick
+                    haptic = ::tick
                 ) as T
             }
         }
@@ -67,7 +67,10 @@ class IMEService : LifecycleInputMethodService(),
         val vm = buildViewModel(layout)
         renderedLayout = layout
         viewModel = vm
-        val view = Lp3KeyboardView(this, vm)
+        val view = Lp3KeyboardView(this, vm).apply {
+            // don't need the keyboard view itself ot handle external keys, Android inputs will do it
+            handleHardwareKeyboardInput = false
+        }
         setCandidatesViewShown(false)
         window?.window?.let {
             it.decorView.apply {

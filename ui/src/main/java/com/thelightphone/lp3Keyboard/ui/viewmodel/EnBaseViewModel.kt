@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
  */
 abstract class EnBaseViewModel<SwipeResult>(
     private val passedCallback: Lp3RepeatableKeyboardCallback,
-    private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>,
+    private val swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>?,
     private val haptic: () -> Unit = {},
     private val optionsForLayout: (Layout) -> LayoutOptions = {
         LayoutOptions(
@@ -246,7 +246,7 @@ abstract class EnBaseViewModel<SwipeResult>(
         cx: FloatArray,
         cy: FloatArray
     ) {
-        swipeCallback.onSwipeLayoutReady(letters, cx, cy)
+        swipeCallback?.onSwipeLayoutReady(letters, cx, cy)
     }
 
     override fun onSwipeCompleted(
@@ -254,16 +254,16 @@ abstract class EnBaseViewModel<SwipeResult>(
         y: FloatArray,
         t: FloatArray
     ): List<SwipeResult> {
-        val results = swipeCallback.onSwipeCompleted(x,y,t)
+        val results = swipeCallback?.onSwipeCompleted(x,y,t) ?: emptyList()
         swipeActive = false
         if (results.isNotEmpty()) {
-            swipeCallback.getWordForResult(results[0])
+            swipeCallback?.getWordForResult(results[0])
                 ?.let(this::onSubmitWord)
         }
         return results
     }
 
-    override fun getWordForResult(swipeResult: SwipeResult) = swipeCallback.getWordForResult(swipeResult)
+    override fun getWordForResult(swipeResult: SwipeResult) = swipeCallback?.getWordForResult(swipeResult)
 
     override fun onCleared() {
         super.onCleared()
