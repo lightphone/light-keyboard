@@ -67,7 +67,13 @@ class IMEService : LifecycleInputMethodService(),
         val vm = buildViewModel(layout)
         renderedLayout = layout
         viewModel = vm
-        val view = Lp3KeyboardView(this, vm).apply {
+
+        val view = Lp3KeyboardView(
+            context = this,
+            viewModel = vm,
+            // don't need to remap since no external keyboard
+            remapKeyCode = null
+        ).apply {
             // don't need the keyboard view itself ot handle external keys, Android inputs will do it
             handleHardwareKeyboardInput = false
         }

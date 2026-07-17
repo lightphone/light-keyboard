@@ -2,6 +2,7 @@ package com.thelightphone.lp3Keyboard.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.KeyEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +31,9 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
     var darkMode: Boolean by mutableStateOf(true)
     var handleHardwareKeyboardInput: Boolean by mutableStateOf(true)
 
+    // by default, assume running on an LP3
+    open fun remapKeyCode(keyEvent: KeyEvent): Int = lightOsRemap(keyEvent)
+
     @Composable
     override fun Content() {
         val cb = callback ?: return
@@ -37,7 +41,7 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
             Box(
                 modifier = Modifier.then(
                     if (handleHardwareKeyboardInput) {
-                        Modifier.hardwareKeyboardInput(cb)
+                        Modifier.hardwareKeyboardInput(cb, this::remapKeyCode)
                     } else {
                         Modifier
                     }
@@ -60,7 +64,11 @@ open class Lp3RawKeyboardView @JvmOverloads constructor(
     }
 }
 
-class Lp3KeyboardView<T>(context: Context, private val viewModel: Lp3KeyboardViewModel<T>) :
+class Lp3KeyboardView<T>(
+    context: Context,
+    private val viewModel: Lp3KeyboardViewModel<T>,
+    private val remapKeyCode: ((KeyEvent) -> Int)? = ::lightOsRemap
+) :
     AbstractComposeView(context) {
     var darkMode: Boolean by mutableStateOf(true)
     var handleHardwareKeyboardInput: Boolean by mutableStateOf(true)
@@ -68,7 +76,7 @@ class Lp3KeyboardView<T>(context: Context, private val viewModel: Lp3KeyboardVie
     @Composable
     override fun Content() {
         Lp3KeyboardTheme(if (darkMode) DarkKeyboardColors else LightKeyboardColors) {
-            Lp3KeyboardWrapper(viewModel, handleHardwareKeyboardInput)
+            Lp3KeyboardWrapper(viewModel, handleHardwareKeyboardInput, remapKeyCode)
         }
     }
 }

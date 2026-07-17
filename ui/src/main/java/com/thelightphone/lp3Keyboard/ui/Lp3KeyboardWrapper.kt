@@ -1,5 +1,6 @@
 package com.thelightphone.lp3Keyboard.ui
 
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,8 @@ Eventually, we will replace the custom UI in LightOS with this, so we have a sin
 @Composable
 fun Lp3KeyboardWrapper(
     viewModel: Lp3KeyboardViewModel<*>,
-    handleHardwareKeyboardInput: Boolean = true
+    handleHardwareKeyboardInput: Boolean = true,
+    remapKeyCode: ((KeyEvent) -> Int)? = ::lightOsRemap
 ) {
     val layout by viewModel.layoutFlow.collectAsState()
     val keyboardOptions by viewModel.keyboardOptionsFlow.collectAsState()
@@ -47,7 +49,8 @@ fun Lp3KeyboardWrapper(
         layoutOptions,
         viewModel,
         viewModel,
-        handleHardwareKeyboardInput
+        handleHardwareKeyboardInput,
+        remapKeyCode
     )
 }
 
@@ -58,7 +61,8 @@ fun Lp3KeyboardWrapper(
     layoutOptions: LayoutOptions,
     callback: Lp3KeyboardCallback,
     swipeCallback: Lp3KeyboardSwipeCallback<*>?,
-    handleHardwareKeyboardInput: Boolean = true
+    handleHardwareKeyboardInput: Boolean = true,
+    remapKeyCode: ((KeyEvent) -> Int)? = ::lightOsRemap
 ) {
     val colors = LocalKeyboardColors.current
     Column(
@@ -69,7 +73,7 @@ fun Lp3KeyboardWrapper(
             .padding(top = 10.dp)
             .then(
                 if (handleHardwareKeyboardInput) {
-                    Modifier.hardwareKeyboardInput(callback)
+                    Modifier.hardwareKeyboardInput(callback, remapKeyCode)
                 } else {
                     Modifier
                 }
