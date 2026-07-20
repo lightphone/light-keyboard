@@ -152,7 +152,11 @@ fun Lp3Keyboard(
                 // While the gesture is active the newest point is constantly
                 // refreshed so this never trips; once the finger lifts, the
                 // trail fades together and disappears as a unit.
-                val newestAge = nowMs - trailPoints.last().timeMs
+                // trailPoints can be cleared concurrently by a new gesture
+                // starting (see the pointerInput block below) while we were
+                // suspended in withFrameNanos, so re-check before reading last().
+                val newest = trailPoints.lastOrNull() ?: break
+                val newestAge = nowMs - newest.timeMs
                 if (newestAge > SWIPE_TRAIL_FADE_MS) trailPoints.clear()
             }
         }
