@@ -8,7 +8,9 @@ If you'd like to contribute/file issues, please read [CONTRIBUTING.md](CONTRIBUT
 
 ### Layouts
 
-Currently, only English/QWERTY is supported. We want to add more languages/layouts as soon as possible. Please reach out if there are any you are particularly excited about!
+Currently supported: English (QWERTY and Colemak) and Arabic. We want to add more languages/layouts as soon as possible. Please reach out if there are any you are particularly excited about!
+
+A layout declares its own rows, long-press alternates, and text direction — see [ArStandard](ui/src/main/java/com/thelightphone/lp3Keyboard/ui/layout/ArStandard.kt) for a right-to-left, caseless example — and is picked up by the app once it's added to `LayoutRegistryItem`.
 
 ## Usage
 

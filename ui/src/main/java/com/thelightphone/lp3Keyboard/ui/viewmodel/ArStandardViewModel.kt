@@ -3,21 +3,21 @@ package com.thelightphone.lp3Keyboard.ui.viewmodel
 import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
 import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
+import com.thelightphone.lp3Keyboard.ui.layout.ArShared
+import com.thelightphone.lp3Keyboard.ui.layout.ArStandard
 import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * An abstract view model for the base, shared logic for English keyboards.
- *
- * Typically, setting initial, lower, upper, and capslock layouts is enough to define a standard
- * English keyboard. Everything else — the number/symbol/emoji layers and the long-press
- * alternates — comes from [EnShared]. See [Lp3BaseViewModel] for the shared behavior.
+ * Arabic is caseless, so all three caps modes render the same layout — the shift key is never
+ * drawn and [Lp3BaseViewModel.capsMode] stays inert. The emoji layer is language-neutral, so it
+ * comes from [EnShared].
  */
-abstract class EnBaseViewModel<SwipeResult>(
+class ArStandardLp3KeyboardViewModel<SwipeResult>(
     passedCallback: Lp3RepeatableKeyboardCallback,
-    swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>?,
+    swipeCallback: Lp3KeyboardSwipeCallback<SwipeResult>? = null,
     haptic: () -> Unit = {},
     optionsForLayout: (Layout) -> LayoutOptions = {
         LayoutOptions(
@@ -32,23 +32,19 @@ abstract class EnBaseViewModel<SwipeResult>(
             enableKeyAnimation = true,
             swipeEnabled = false
         )
-    ),
-    initialLayout: Layout,
-    lowerCaseLayout: Layout,
-    upperCaseLayout: Layout,
-    capsLockedLayout: Layout,
+    )
 ) : Lp3BaseViewModel<SwipeResult>(
     passedCallback = passedCallback,
     swipeCallback = swipeCallback,
     haptic = haptic,
     optionsForLayout = optionsForLayout,
     keyboardOptionsFlow = keyboardOptionsFlow,
-    initialLayout = initialLayout,
-    lowerCaseLayout = lowerCaseLayout,
-    upperCaseLayout = upperCaseLayout,
-    capsLockedLayout = capsLockedLayout,
-    numberLayout = EnShared.NumberLayout,
-    symbolsLayout = EnShared.SymbolsLayout,
+    initialLayout = ArStandard.LettersLayout,
+    lowerCaseLayout = ArStandard.LettersLayout,
+    upperCaseLayout = ArStandard.LettersLayout,
+    capsLockedLayout = ArStandard.LettersLayout,
+    numberLayout = ArShared.NumberLayout,
+    symbolsLayout = ArShared.SymbolsLayout,
     emojiLayout = EnShared.EmojiLayout,
-    extendedCharMapping = EnShared.extendedCharMapping,
+    extendedCharMapping = ArShared.extendedCharMapping,
 )

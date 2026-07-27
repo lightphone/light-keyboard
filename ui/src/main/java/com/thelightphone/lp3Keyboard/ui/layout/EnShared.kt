@@ -2,6 +2,7 @@ package com.thelightphone.lp3Keyboard.ui.layout
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.thelightphone.lp3Keyboard.ui.DefaultRow
 import com.thelightphone.lp3Keyboard.ui.FinalRow
@@ -75,8 +76,16 @@ object EnShared {
         }
     }
 
-    class ExtendedCharKeyboard(rootCode: Int) : Layout {
-        private val rows = extendedCharMapping[rootCode]
+    /**
+     * The long-press sheet of alternates for [rootCode]. [mapping] and [layoutDirection] default
+     * to English, other languages pass their own (see [ArShared.extendedCharMapping]).
+     */
+    class ExtendedCharKeyboard(
+        rootCode: Int,
+        mapping: Map<Int, List<List<Char>>> = extendedCharMapping,
+        override val layoutDirection: LayoutDirection = LayoutDirection.Ltr
+    ) : Layout {
+        private val rows = mapping[rootCode]
 
         @Composable
         override fun ColumnScope.Render(

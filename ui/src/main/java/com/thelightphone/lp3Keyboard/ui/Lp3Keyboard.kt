@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,13 +51,16 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.thelightphone.lp3Keyboard.ui.layout.ArStandard
 import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
@@ -249,7 +253,10 @@ fun Lp3Keyboard(
             )
     ) {
         Column(Modifier.fillMaxSize().padding(top = 4.dp).align(Alignment.Center)) {
-            CompositionLocalProvider(LocalAkkuratFamily provides akkurat) {
+            CompositionLocalProvider(
+                LocalAkkuratFamily provides akkurat,
+                LocalLayoutDirection provides layout.layoutDirection
+            ) {
                 with(layout) { Render(options, callback) }
             }
         }
@@ -525,6 +532,8 @@ fun RowScope.MultiLabelKey(
             letterSpacing = 2.sp,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
+            // "#+=" is all bidi-neutral, so an RTL layout would render it "=+#".
+            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
             modifier = Modifier.then(
                 if (enableKeyAnimation) {
                     Modifier.graphicsLayer {
@@ -707,6 +716,30 @@ fun Lp3KeyboardDarkPreview() {
             val layoutOptions = LayoutOptions(displayCloseButton = true)
             Lp3KeyboardWrapper(
                 EnShared.EmojiLayout,
+                keyboardOptions,
+                layoutOptions,
+                previewCallback,
+                null
+            )
+        }
+    }
+}
+
+@Preview(name = "Arabic", widthDp = (1080 / 3), heightDp = (1240 / 3))
+@Composable
+fun Lp3KeyboardArabicPreview() {
+    Lp3KeyboardTheme(DarkKeyboardColors) {
+        Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
+            val keyboardOptions = KeyboardOptions(
+                defaultEmojis,
+                displayReturn = true,
+                displayVoice = true,
+                enableKeyAnimation = true,
+                swipeEnabled = true
+            )
+            val layoutOptions = LayoutOptions(displayCloseButton = true)
+            Lp3KeyboardWrapper(
+                ArStandard.LettersLayout,
                 keyboardOptions,
                 layoutOptions,
                 previewCallback,

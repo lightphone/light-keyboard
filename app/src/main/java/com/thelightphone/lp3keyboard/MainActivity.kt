@@ -3,6 +3,8 @@ package com.thelightphone.lp3keyboard
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.text.TextUtils
+import android.view.View
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -21,6 +23,7 @@ import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -56,6 +61,7 @@ fun Options() {
             .fillMaxWidth(),
     ) {
         val ctx = LocalContext.current
+        var selected by remember { mutableStateOf(LayoutPreferences.getActiveLayout(ctx)) }
         Text(text = "LP3 Keyboard")
         val (text, setValue) = remember { mutableStateOf(TextFieldValue("Try here")) }
         Spacer(modifier = Modifier.height(16.dp))
@@ -73,21 +79,30 @@ fun Options() {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "3. Choose layout")
-        LayoutPicker()
+        LayoutPicker(selected) { selected = it }
         Spacer(modifier = Modifier.height(16.dp))
-        TextField(
-            value = text,
-            onValueChange = setValue,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        )
+        // Follow the layout's own direction so an RTL layout types into a field that behaves like
+        // a real Arabic one: right-aligned, with the caret travelling leftward.
+        val direction =
+            if (TextUtils.getLayoutDirectionFromLocale(selected.locale) == View.LAYOUT_DIRECTION_RTL) {
+                LayoutDirection.Rtl
+            } else {
+                LayoutDirection.Ltr
+            }
+        CompositionLocalProvider(LocalLayoutDirection provides direction) {
+            TextField(
+                value = text,
+                onValueChange = setValue,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            )
+        }
     }
 }
 
 @Composable
-fun LayoutPicker() {
+fun LayoutPicker(selected: LayoutRegistryItem, onSelected: (LayoutRegistryItem) -> Unit) {
     val ctx = LocalContext.current
-    var selected by remember { mutableStateOf(LayoutPreferences.getActiveLayout(ctx)) }
     Column(modifier = Modifier.fillMaxWidth()) {
         LayoutRegistryItem.entries.forEach { item ->
             Row(
@@ -96,7 +111,7 @@ fun LayoutPicker() {
                     .selectable(
                         selected = item == selected,
                         onClick = {
-                            selected = item
+                            onSelected(item)
                             LayoutPreferences.setActiveLayout(ctx, item)
                         },
                     ),

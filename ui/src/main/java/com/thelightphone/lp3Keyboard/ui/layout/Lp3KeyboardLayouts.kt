@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.thelightphone.lp3Keyboard.ui.DefaultRow
 import com.thelightphone.lp3Keyboard.ui.FinalRow
@@ -22,6 +23,7 @@ import com.thelightphone.lp3Keyboard.ui.R
 import com.thelightphone.lp3Keyboard.ui.SecondRow
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.ThirdRow
+import com.thelightphone.lp3Keyboard.ui.viewmodel.ArStandardLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.EnColemakLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
@@ -38,7 +40,8 @@ enum class LayoutRegistryItem(
     val label: String
 ) {
     EnQwerty(Locale.ENGLISH, "qwerty", "QWERTY (English)"),
-    EnColemak(Locale.ENGLISH, "colemak", "Colemak (English)")
+    EnColemak(Locale.ENGLISH, "colemak", "Colemak (English)"),
+    ArStandard(Locale.forLanguageTag("ar"), "standard", "Standard (Arabic)")
     ;
 
     val uniqueId: String = "${locale}_$variant"
@@ -68,6 +71,13 @@ fun <SwipeResultType> LayoutRegistryItem.buildRootViewModel(
             haptic,
             optionsForLayout
         )
+
+        LayoutRegistryItem.ArStandard -> ArStandardLp3KeyboardViewModel(
+            passedCallback,
+            swipeCallback,
+            haptic,
+            optionsForLayout
+        )
     }
 }
 
@@ -86,4 +96,11 @@ sealed interface Layout {
 
     val swipeConfig: SwipeConfig?
         get() = null
+
+    /**
+     * Direction the rows are laid out in. [LayoutDirection.Rtl] mirrors the whole keyboard, so
+     * the first character of a row string lands on the right and backspace moves to the left.
+     */
+    val layoutDirection: LayoutDirection
+        get() = LayoutDirection.Ltr
 }
