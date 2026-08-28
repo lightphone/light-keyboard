@@ -108,7 +108,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             return // swallow on key released if held
         }
         // eagerly drop single-caps so fast typists see lowercase before the IME round-trip
-        if (capsMode == CapsMode.Single && layoutFlow.value.isRootLayout) {
+        if (capsMode == CapsMode.Single) {
             capsMode = CapsMode.Off
             showAlphabetLayout()
         }
@@ -163,18 +163,11 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Space, SpecialKey.Return -> {
-                if (!layoutFlow.value.isRootLayout) {
-                    showAlphabetLayout()
-                }
                 consumed = false
             }
 
             Close -> {
-                if (!layoutFlow.value.isRootLayout) {
-                    showAlphabetLayout()
-                } else {
-                    consumed = false
-                }
+                consumed = false
             }
 
             else -> {
@@ -235,9 +228,6 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Space, SpecialKey.Return -> {
-                if (!layoutFlow.value.isRootLayout) {
-                    showAlphabetLayout()
-                }
                 true
             }
 
