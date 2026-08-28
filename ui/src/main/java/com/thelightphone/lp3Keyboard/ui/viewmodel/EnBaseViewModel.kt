@@ -1,5 +1,6 @@
 package com.thelightphone.lp3Keyboard.ui.viewmodel
 
+import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
@@ -107,7 +108,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             return // swallow on key released if held
         }
         // eagerly drop single-caps so fast typists see lowercase before the IME round-trip
-        if (capsMode == CapsMode.Single) {
+        if (capsMode == CapsMode.Single && layoutFlow.value.isRootLayout) {
             capsMode = CapsMode.Off
             showAlphabetLayout()
         }
@@ -146,7 +147,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Numbers -> {
-                setLayout(EnShared.NumberLayout)
+                setLayout(EnShared.NumericPadLayout(EditorInfo.TYPE_NULL, isRootLayout = false))
             }
 
             SpecialKey.Letters -> {
@@ -159,6 +160,13 @@ abstract class EnBaseViewModel<SwipeResult>(
 
             SpecialKey.Emojis -> {
                 setLayout(EnShared.EmojiLayout)
+            }
+
+            SpecialKey.Space, SpecialKey.Return -> {
+                if (!layoutFlow.value.isRootLayout) {
+                    showAlphabetLayout()
+                }
+                consumed = false
             }
 
             Close -> {
@@ -175,6 +183,15 @@ abstract class EnBaseViewModel<SwipeResult>(
         }
         if (!consumed) {
             delegateCallback?.onSpecialKeyReleased(key)
+        }
+    }
+
+    override fun setInputType(inputType: Int) {
+        val mask = inputType and EditorInfo.TYPE_MASK_CLASS
+        if (mask == EditorInfo.TYPE_CLASS_NUMBER || mask == EditorInfo.TYPE_CLASS_PHONE) {
+            setLayout(EnShared.NumericPadLayout(inputType))
+        } else {
+            showAlphabetLayout()
         }
     }
 
@@ -215,6 +232,13 @@ abstract class EnBaseViewModel<SwipeResult>(
                 showAlphabetLayout()
                 // don't allow repeats since we switched layouts and the original button is gone
                 false
+            }
+
+            SpecialKey.Space, SpecialKey.Return -> {
+                if (!layoutFlow.value.isRootLayout) {
+                    showAlphabetLayout()
+                }
+                true
             }
 
             else -> true

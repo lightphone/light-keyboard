@@ -91,6 +91,7 @@ class IMEService : LifecycleInputMethodService(),
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         refreshLayoutIfNeeded()
+        info?.let { viewModel?.setInputType(it.inputType) }
     }
 
     override fun onCreate() {
@@ -129,6 +130,7 @@ class IMEService : LifecycleInputMethodService(),
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        attribute?.let { viewModel?.setInputType(it.inputType) }
         updateCapsMode()
     }
 

@@ -1,5 +1,6 @@
 package com.thelightphone.lp3Keyboard.ui.layout
 
+import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -13,10 +14,60 @@ import com.thelightphone.lp3Keyboard.ui.MEDIUM_KEY_WIDTH_DP
 import com.thelightphone.lp3Keyboard.ui.MultiLabelKey
 import com.thelightphone.lp3Keyboard.ui.SecondRow
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
+import com.thelightphone.lp3Keyboard.ui.STANDARD_KEY_WIDTH_DP
 import com.thelightphone.lp3Keyboard.ui.ThirdRow
 
 /** Layouts and data generally shared across English keyboards. */
 object EnShared {
+    class NumericPadLayout(
+        private val inputType: Int,
+        override val isRootLayout: Boolean = true
+    ) : Layout {
+
+        @Composable
+        override fun ColumnScope.Render(
+            options: KeyboardOptions,
+            callback: Lp3KeyboardCallback
+        ) {
+            val keyWidth = (STANDARD_KEY_WIDTH_DP * 2.5).dp
+            val rowHeight = 35.dp
+            DefaultRow(height = rowHeight) {
+                Key('1'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('2'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('3'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+            }
+            DefaultRow(height = rowHeight) {
+                Key('4'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('5'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('6'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+            }
+            DefaultRow(height = rowHeight) {
+                Key('7'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('8'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('9'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+            }
+            DefaultRow(height = rowHeight) {
+                val bottomKey = when (inputType and EditorInfo.TYPE_MASK_CLASS) {
+                    EditorInfo.TYPE_CLASS_PHONE -> '*'
+                    else -> '.'
+                }
+                Key(bottomKey.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key('0'.code, callback, null, options.enableKeyAnimation, width = keyWidth)
+                Key(
+                    '⌫'.code,
+                    callback,
+                    null,
+                    options.enableKeyAnimation,
+                    override = SpecialKey.Backspace,
+                    width = keyWidth
+                )
+            }
+            FinalRow(options, callback) {
+                MultiLabelKey("ABC", SpecialKey.Letters, callback, options.enableKeyAnimation)
+            }
+        }
+    }
+
     object NumberLayout : Layout {
         @Composable
         override fun ColumnScope.Render(

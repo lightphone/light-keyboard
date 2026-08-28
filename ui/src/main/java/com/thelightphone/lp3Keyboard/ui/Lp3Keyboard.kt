@@ -167,6 +167,31 @@ fun Lp3Keyboard(
             .height(LP3_KEYBOARD_HEIGHT_DP.dp)
             .background(LocalKeyboardColors.current.background)
             .onGloballyPositioned { boxRootOffset.value = it.positionInRoot() }
+            .pointerInput(callback) {
+                val hideThreshold = 40.dp.toPx()
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    // Only care if it starts in the top section
+                    if (down.position.y > hideThreshold) return@awaitEachGesture
+
+                    var totalDrag = 0f
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (change.pressed) {
+                            val drag = change.position.y - change.previousPosition.y
+                            totalDrag += drag
+                            if (totalDrag > hideThreshold) {
+                                callback.onSpecialKeyReleased(SpecialKey.Close)
+                                change.consume()
+                                break
+                            }
+                        } else {
+                            break
+                        }
+                    }
+                }
+            }
             .then(
                 if (swipeConfig != null) {
                     Modifier.pointerInput(swipeConfig) {

@@ -13,6 +13,7 @@ interface Lp3KeyboardViewModel<SwipeResultType> : Lp3KeyboardCallback, Lp3Keyboa
     val keyboardOptionsFlow: StateFlow<KeyboardOptions>
     val layoutOptionsFlow: StateFlow<LayoutOptions>
     fun cancelHeldKeys()
+    fun setInputType(inputType: Int)
 
     /** Called by the IME after each character to handle system-requested caps. */
     fun setCapsMode(enabled: Boolean)
