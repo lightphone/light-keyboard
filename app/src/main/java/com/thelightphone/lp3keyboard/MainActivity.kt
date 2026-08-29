@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -33,6 +35,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.thelightphone.lp3Keyboard.ui.DarkKeyboardColors
+import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardTheme
+import com.thelightphone.lp3Keyboard.ui.lightFontFamily
 import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
 
 // Based on https://github.com/THEAccess/compose-keyboard-ime
@@ -41,44 +49,129 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Options()
+            Lp3KeyboardTheme(DarkKeyboardColors) {
+                Options()
+            }
         }
     }
 }
 
 @Composable
+fun Lp3Button(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val akkurat = lightFontFamily(context)
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        colors = androidx.compose.material.ButtonDefaults.buttonColors(
+            backgroundColor = Color.White,
+            contentColor = Color.Black
+        ),
+        elevation = null,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
+    ) {
+        Text(
+            text = text.uppercase(),
+            fontFamily = akkurat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            letterSpacing = 2.sp
+        )
+    }
+}
+
+@Composable
 fun Options() {
+    val context = LocalContext.current
+    val akkurat = lightFontFamily(context)
     Column(
         modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
             .systemBarsPadding()
-            .padding(16.dp)
-            .background(Color.White)
-            .fillMaxWidth(),
+            .padding(24.dp),
     ) {
-        val ctx = LocalContext.current
-        Text(text = "LP3 Keyboard")
-        val (text, setValue) = remember { mutableStateOf(TextFieldValue("Try here")) }
+        Text(
+            text = "KEYBOARD",
+            color = Color.White,
+            fontFamily = akkurat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Lp3Button(
+            text = "1. Enable Keyboard",
+            onClick = {
+                context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+            }
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Lp3Button(
+            text = "2. Select Keyboard",
+            onClick = {
+                val imm = context.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
+                imm.showInputMethodPicker()
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        Text(
+            text = "CHOOSE LAYOUT",
+            color = Color.White,
+            fontFamily = akkurat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            ctx.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
-        }) {
-            Text(text = "1. Enable IME")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            val imm = ctx.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
-            imm.showInputMethodPicker()
-        }) {
-            Text(text = "2. Select IME")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "3. Choose layout")
         LayoutPicker()
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        Text(
+            text = "TEST INPUT",
+            color = Color.White,
+            fontFamily = akkurat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp
+        )
         Spacer(modifier = Modifier.height(16.dp))
+        
+        var textValue by remember { mutableStateOf(TextFieldValue("")) }
         TextField(
-            value = text,
-            onValueChange = setValue,
-            modifier = Modifier.fillMaxWidth(),
+            value = textValue,
+            onValueChange = { textValue = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black),
+            placeholder = {
+                Text(
+                    "Type here...",
+                    color = Color.Gray,
+                    fontFamily = akkurat
+                )
+            },
+            textStyle = androidx.compose.ui.text.TextStyle(
+                color = Color.White,
+                fontFamily = akkurat,
+                fontSize = 18.sp
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                cursorColor = Color.White,
+                focusedIndicatorColor = Color.White,
+                unfocusedIndicatorColor = Color.Gray
+            ),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         )
     }
@@ -87,14 +180,18 @@ fun Options() {
 @Composable
 fun LayoutPicker() {
     val ctx = LocalContext.current
+    val akkurat = lightFontFamily(ctx)
     var selected by remember { mutableStateOf(LayoutPreferences.getActiveLayout(ctx)) }
+    
     Column(modifier = Modifier.fillMaxWidth()) {
         LayoutRegistryItem.entries.forEach { item ->
+            val isSelected = item == selected
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(48.dp)
                     .selectable(
-                        selected = item == selected,
+                        selected = isSelected,
                         onClick = {
                             selected = item
                             LayoutPreferences.setActiveLayout(ctx, item)
@@ -102,14 +199,20 @@ fun LayoutPicker() {
                     ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                RadioButton(
-                    selected = item == selected,
-                    // Click is handled by the row's selectable modifier above.
-                    onClick = null,
-                    modifier = Modifier.size(20.dp),
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(if (isSelected) Color.White else Color.Transparent)
+                        .border(1.dp, Color.White)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = item.label)
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = item.label,
+                    color = Color.White,
+                    fontFamily = akkurat,
+                    fontSize = 16.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                )
             }
         }
     }
