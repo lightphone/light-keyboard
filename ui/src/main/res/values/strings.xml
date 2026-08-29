@@ -1,0 +1,6 @@
+<resources>
+    <string name="layout_en_qwerty">QWERTY (English)</string>
+    <string name="layout_en_colemak">Colemak (English)</string>
+    <string name="layout_fr_azerty">AZERTY (French)</string>
+    <string name="layout_be_azerty">AZERTY (Belgium)</string>
+</resources>

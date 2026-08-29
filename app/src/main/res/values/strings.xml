@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Lp3Keyboard</string>
+    <string name="settings_title">KEYBOARD</string>
+    <string name="btn_enable_keyboard">1. Enable Keyboard</string>
+    <string name="btn_select_keyboard">2. Select Keyboard</string>
+    <string name="layout_picker_title">CHOOSE LAYOUT</string>
+    <string name="test_input_title">TEST INPUT</string>
+    <string name="test_input_placeholder">Type here...</string>
 </resources>

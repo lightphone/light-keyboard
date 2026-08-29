@@ -37,12 +37,12 @@ import java.util.Locale
 enum class LayoutRegistryItem(
     val locale: Locale,
     val variant: String,
-    val label: String
+    val labelResId: Int
 ) {
-    EnQwerty(Locale.ENGLISH, "qwerty", "QWERTY (English)"),
-    EnColemak(Locale.ENGLISH, "colemak", "Colemak (English)"),
-    FrAzerty(Locale.FRENCH, "azerty", "AZERTY (French)"),
-    BeAzerty(Locale("nl", "BE"), "azerty", "AZERTY (Belgium)")
+    EnQwerty(Locale.ENGLISH, "qwerty", R.string.layout_en_qwerty),
+    EnColemak(Locale.ENGLISH, "colemak", R.string.layout_en_colemak),
+    FrAzerty(Locale.FRENCH, "azerty", R.string.layout_fr_azerty),
+    BeAzerty(Locale("nl", "BE"), "azerty", R.string.layout_be_azerty)
     ;
 
     val uniqueId: String = "${locale}_$variant"

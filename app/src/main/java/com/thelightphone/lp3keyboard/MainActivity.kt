@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import com.thelightphone.lp3Keyboard.ui.DarkKeyboardColors
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardTheme
 import com.thelightphone.lp3Keyboard.ui.lightFontFamily
@@ -48,6 +53,7 @@ import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             Lp3KeyboardTheme(DarkKeyboardColors) {
                 Options()
@@ -90,15 +96,18 @@ fun Lp3Button(
 fun Options() {
     val context = LocalContext.current
     val akkurat = lightFontFamily(context)
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .systemBarsPadding()
+            .imePadding()
+            .verticalScroll(scrollState)
             .padding(24.dp),
     ) {
         Text(
-            text = "KEYBOARD",
+            text = stringResource(R.string.settings_title),
             color = Color.White,
             fontFamily = akkurat,
             fontWeight = FontWeight.Bold,
@@ -108,14 +117,14 @@ fun Options() {
         Spacer(modifier = Modifier.height(32.dp))
         
         Lp3Button(
-            text = "1. Enable Keyboard",
+            text = stringResource(R.string.btn_enable_keyboard),
             onClick = {
                 context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
             }
         )
         Spacer(modifier = Modifier.height(12.dp))
         Lp3Button(
-            text = "2. Select Keyboard",
+            text = stringResource(R.string.btn_select_keyboard),
             onClick = {
                 val imm = context.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
                 imm.showInputMethodPicker()
@@ -125,7 +134,7 @@ fun Options() {
         Spacer(modifier = Modifier.height(48.dp))
         
         Text(
-            text = "CHOOSE LAYOUT",
+            text = stringResource(R.string.layout_picker_title),
             color = Color.White,
             fontFamily = akkurat,
             fontWeight = FontWeight.Bold,
@@ -138,7 +147,7 @@ fun Options() {
         Spacer(modifier = Modifier.height(48.dp))
         
         Text(
-            text = "TEST INPUT",
+            text = stringResource(R.string.test_input_title),
             color = Color.White,
             fontFamily = akkurat,
             fontWeight = FontWeight.Bold,
@@ -156,7 +165,7 @@ fun Options() {
                 .background(Color.Black),
             placeholder = {
                 Text(
-                    "Type here...",
+                    stringResource(R.string.test_input_placeholder),
                     color = Color.Gray,
                     fontFamily = akkurat
                 )
@@ -180,40 +189,34 @@ fun Options() {
 @Composable
 fun LayoutPicker() {
     val ctx = LocalContext.current
-    val akkurat = lightFontFamily(ctx)
     var selected by remember { mutableStateOf(LayoutPreferences.getActiveLayout(ctx)) }
-    
+
     Column(modifier = Modifier.fillMaxWidth()) {
         LayoutRegistryItem.entries.forEach { item ->
             val isSelected = item == selected
-            Row(
+            AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-                    .selectable(
-                        selected = isSelected,
-                        onClick = {
-                            selected = item
-                            LayoutPreferences.setActiveLayout(ctx, item)
-                        },
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(if (isSelected) Color.White else Color.Transparent)
-                        .border(1.dp, Color.White)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = item.label,
-                    color = Color.White,
-                    fontFamily = akkurat,
-                    fontSize = 16.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                )
-            }
+                    .height(56.dp),
+                factory = { context ->
+                    LightToggle(context).apply {
+                        setText(context.getString(item.labelResId))
+                        setOnCheckedChangeListener { checked ->
+                            if (checked) {
+                                selected = item
+                                LayoutPreferences.setActiveLayout(ctx, item)
+                            } else if (selected == item) {
+                                // Don't allow unchecking the active layout
+                                isChecked = true
+                            }
+                        }
+                    }
+                },
+                update = { toggle ->
+                    toggle.isChecked = isSelected
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
