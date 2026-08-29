@@ -65,4 +65,28 @@ class EnQwertyViewModelTest {
             vm.layoutFlow.value
         )
     }
+
+    @Test
+    fun `NumberLayout persists after typing even if single-caps was active`() {
+        // 1. Trigger single-caps (e.g. start of sentence)
+        tapShift()
+        assertEquals(CapsMode.Single, vm.capsMode)
+
+        // 2. Switch to NumberLayout
+        vm.onSpecialKeyPressed(SpecialKey.Numbers)
+        vm.onSpecialKeyReleased(SpecialKey.Numbers)
+        assertSame(EnShared.NumberLayout, vm.layoutFlow.value)
+
+        // 3. Type a number
+        vm.onKeyPressed('1'.code)
+        vm.onKeyReleased('1'.code)
+
+        // 4. Verify we are still in NumberLayout (capsMode should be Off, but layout shouldn't change)
+        assertEquals(CapsMode.Off, vm.capsMode)
+        assertSame(
+            "Keyboard must NOT revert to letters after typing a number in NumberLayout",
+            EnShared.NumberLayout,
+            vm.layoutFlow.value
+        )
+    }
 }

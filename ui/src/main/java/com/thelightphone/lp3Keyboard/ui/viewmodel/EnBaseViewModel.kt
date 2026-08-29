@@ -110,7 +110,10 @@ abstract class EnBaseViewModel<SwipeResult>(
         // eagerly drop single-caps so fast typists see lowercase before the IME round-trip
         if (capsMode == CapsMode.Single) {
             capsMode = CapsMode.Off
-            showAlphabetLayout()
+            val current = layoutFlow.value
+            if (current == lowerCaseLayout || current == upperCaseLayout || current == capsLockedLayout) {
+                showAlphabetLayout()
+            }
         }
         // auto-dismiss when a special key is typed
         if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
