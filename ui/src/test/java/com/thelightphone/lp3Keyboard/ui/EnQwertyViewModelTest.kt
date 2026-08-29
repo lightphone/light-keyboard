@@ -1,6 +1,7 @@
 package com.thelightphone.lp3Keyboard.ui
 
 import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
+import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.viewmodel.CapsMode
 import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
@@ -51,5 +52,17 @@ class EnQwertyViewModelTest {
         verify(exactly = 1) { callback.onKeyReleased('Q'.code) }
         assertEquals(CapsMode.Off, vm.capsMode)
         assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `tapping 123 button navigates to NumberLayout`() {
+        vm.onSpecialKeyPressed(SpecialKey.Numbers)
+        vm.onSpecialKeyReleased(SpecialKey.Numbers)
+
+        assertSame(
+            "Tapping 123 must navigate to NumberLayout to show symbols like @ and /",
+            EnShared.NumberLayout,
+            vm.layoutFlow.value
+        )
     }
 }

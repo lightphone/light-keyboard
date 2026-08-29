@@ -147,7 +147,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Numbers -> {
-                setLayout(EnShared.NumericPadLayout(EditorInfo.TYPE_NULL, isRootLayout = false))
+                setLayout(EnShared.NumberLayout)
             }
 
             SpecialKey.Letters -> {

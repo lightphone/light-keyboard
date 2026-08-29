@@ -76,7 +76,7 @@ fun Lp3KeyboardWrapper(
     overlay: (@Composable () -> Unit)? = null,
 ) {
     val colors = LocalKeyboardColors.current
-    val additionalHeight = maxOf(additionalBottomHeight, 36.dp)
+    val additionalHeight = maxOf(additionalBottomHeight, 48.dp)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -95,7 +95,7 @@ fun Lp3KeyboardWrapper(
                 overlay()
             }
         } else {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(4.dp))
             Lp3Keyboard(layout, keyboardOptions, callback, swipeCallback)
         }
         Row(
