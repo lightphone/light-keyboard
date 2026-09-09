@@ -91,6 +91,9 @@ abstract class EnBaseViewModel<SwipeResult>(
         )
     }
 
+    protected open fun isOnSymbolsOrNumbers() =
+        layoutFlow.value is EnShared.SymbolsLayout || layoutFlow.value is EnShared.NumberLayout
+
     override fun onKeyPressed(code: Int) {
         haptic()
         delegateCallback?.onKeyPressed(code)
@@ -114,6 +117,9 @@ abstract class EnBaseViewModel<SwipeResult>(
         // auto-dismiss when a special key is typed
         if (layoutFlow.value is EnShared.ExtendedCharKeyboard) {
             setLayout(previousLayout ?: lowerCaseLayout)
+        } else if (code == '\''.code && isOnSymbolsOrNumbers()) {
+            // apostrophe returns to letters immediately, unlike other keys on this screen
+            showAlphabetLayout()
         }
         delegateCallback?.onKeyReleased(code)
     }
@@ -163,6 +169,14 @@ abstract class EnBaseViewModel<SwipeResult>(
 
             SpecialKey.Emojis -> {
                 setLayout(EnShared.EmojiLayout)
+            }
+
+            SpecialKey.Space, SpecialKey.Return -> {
+                // space/enter returns to letters from symbols/numbers
+                if (isOnSymbolsOrNumbers()) {
+                    showAlphabetLayout()
+                }
+                consumed = false
             }
 
             Close -> {

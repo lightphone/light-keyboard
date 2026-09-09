@@ -101,4 +101,92 @@ class EnQwertyViewModelTest {
         vm.onKeyCancelled('à'.code)
         assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
     }
+
+    @Test
+    fun `apostrophe on symbols layout returns to letters after release`() {
+        vm.onSpecialKeyReleased(SpecialKey.Symbols)
+        assertSame(EnShared.SymbolsLayout, vm.layoutFlow.value)
+
+        vm.onKeyPressed('\''.code)
+        vm.onKeyReleased('\''.code)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+        verify(exactly = 1) { callback.onKeyReleased('\''.code) }
+    }
+
+    @Test
+    fun `apostrophe on numbers layout returns to letters after release`() {
+        vm.onSpecialKeyReleased(SpecialKey.Numbers)
+        assertSame(EnShared.NumberLayout, vm.layoutFlow.value)
+
+        vm.onKeyPressed('\''.code)
+        vm.onKeyReleased('\''.code)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `other keys on symbols layout do not auto-return to letters`() {
+        vm.onSpecialKeyReleased(SpecialKey.Symbols)
+        assertSame(EnShared.SymbolsLayout, vm.layoutFlow.value)
+
+        vm.onKeyPressed('#'.code)
+        vm.onKeyReleased('#'.code)
+
+        assertSame(EnShared.SymbolsLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `apostrophe while on letters layout does not change layout`() {
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+
+        vm.onKeyPressed('\''.code)
+        vm.onKeyReleased('\''.code)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `space returns to letters from symbols layout and still forwards to callback`() {
+        vm.onSpecialKeyReleased(SpecialKey.Symbols)
+        assertSame(EnShared.SymbolsLayout, vm.layoutFlow.value)
+
+        vm.onSpecialKeyReleased(SpecialKey.Space)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+        verify(exactly = 1) { callback.onSpecialKeyReleased(SpecialKey.Space) }
+    }
+
+    @Test
+    fun `return key returns to letters from numbers layout and still forwards to callback`() {
+        vm.onSpecialKeyReleased(SpecialKey.Numbers)
+        assertSame(EnShared.NumberLayout, vm.layoutFlow.value)
+
+        vm.onSpecialKeyReleased(SpecialKey.Return)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+        verify(exactly = 1) { callback.onSpecialKeyReleased(SpecialKey.Return) }
+    }
+
+    @Test
+    fun `space on letters layout does not change layout but still forwards to callback`() {
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+
+        vm.onSpecialKeyReleased(SpecialKey.Space)
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+        verify(exactly = 1) { callback.onSpecialKeyReleased(SpecialKey.Space) }
+    }
+
+    @Test
+    fun `space on symbols layout restores upper case when single-shifted before switching`() {
+        tapShift()
+        vm.onSpecialKeyReleased(SpecialKey.Symbols)
+        assertSame(EnShared.SymbolsLayout, vm.layoutFlow.value)
+
+        vm.onSpecialKeyReleased(SpecialKey.Space)
+
+        // caps mode carries through the symbols screen, so space should restore uppercase.
+        assertSame(EnQwerty.UpperCaseLayout, vm.layoutFlow.value)
+    }
 }
