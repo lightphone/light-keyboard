@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
@@ -323,7 +325,8 @@ fun RowScope.IconKey(
     callback: Lp3KeyboardCallback,
     enableKeyAnimation: Boolean,
     modifier: Modifier = Modifier,
-    width: Dp = STANDARD_KEY_WIDTH_DP.dp
+    width: Dp = STANDARD_KEY_WIDTH_DP.dp,
+    iconSize: DpSize? = null
 ) {
     var pressed by remember { mutableStateOf(false) }
     val onPressed = remember(key, callback) { { callback.onSpecialKeyPressed(key) } }
@@ -347,7 +350,9 @@ fun RowScope.IconKey(
             painterResource(drawable),
             contentDescription = "TODO",
             tint = LocalKeyboardColors.current.foreground,
-            modifier = Modifier.then(
+            modifier = Modifier
+                .then(if (iconSize != null) Modifier.size(iconSize) else Modifier)
+                .then(
                 if (enableKeyAnimation) {
                     Modifier.graphicsLayer {
                         val isPressed = pressed
