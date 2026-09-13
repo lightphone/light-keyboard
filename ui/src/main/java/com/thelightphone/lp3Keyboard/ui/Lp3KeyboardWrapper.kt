@@ -31,6 +31,7 @@ import com.thelightphone.lp3Keyboard.ui.layout.EnQwerty
 import com.thelightphone.lp3Keyboard.ui.layout.EnShared
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.zhuyin.ZhuyinComposerHost
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 
 /*
@@ -50,15 +51,26 @@ fun Lp3KeyboardWrapper(
     val layout by viewModel.layoutFlow.collectAsState()
     val keyboardOptions by viewModel.keyboardOptionsFlow.collectAsState()
     val layoutOptions by viewModel.layoutOptionsFlow.collectAsState()
-    Lp3KeyboardWrapper(
-        layout,
-        keyboardOptions,
-        layoutOptions,
-        viewModel,
-        viewModel,
-        handleHardwareKeyboardInput,
-        remapKeyCode
-    )
+    // Candidate bar: only view models that compose expose a host, and it only
+    // renders while a composition is active — otherwise this is a no-op. Stack it
+    // above the keyboard in a Column so the IME window grows to include it
+    // (siblings without a layout parent would overlap the top key row).
+    val composerHost = viewModel as? ZhuyinComposerHost
+    val composerState = composerHost?.composerStateFlow?.collectAsState()?.value
+    Column(Modifier.fillMaxWidth().background(LocalKeyboardColors.current.background)) {
+        if (composerHost != null && composerState != null && composerState.isActive) {
+            CandidateBar(composerState, composerHost::onCandidateSelected)
+        }
+        Lp3KeyboardWrapper(
+            layout,
+            keyboardOptions,
+            layoutOptions,
+            viewModel,
+            viewModel,
+            handleHardwareKeyboardInput,
+            remapKeyCode
+        )
+    }
 }
 
 @Composable
