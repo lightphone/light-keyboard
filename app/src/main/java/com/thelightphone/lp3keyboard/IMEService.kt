@@ -18,6 +18,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
+import com.thelightphone.lp3Keyboard.ui.composer.ImeComposingActions
 import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
 import com.thelightphone.lp3Keyboard.ui.layout.buildRootViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
@@ -26,7 +27,8 @@ import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 class IMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
     SavedStateRegistryOwner,
-    Lp3RepeatableKeyboardCallback {
+    Lp3RepeatableKeyboardCallback,
+    ImeComposingActions {
 
     private var renderedLayout: LayoutRegistryItem? = null
     private var viewModel: Lp3KeyboardViewModel<*>? = null
@@ -141,6 +143,24 @@ class IMEService : LifecycleInputMethodService(),
     }
 
     override fun onKeyPressed(code: Int) {
+    }
+
+    // --- ImeComposingActions: pre-edit / candidate commit ------------------
+    override fun onComposingChanged(composing: CharSequence) {
+        val ic = currentInputConnection ?: return
+        if (composing.isEmpty()) {
+            ic.finishComposingText()
+        } else {
+            ic.setComposingText(composing, 1)
+        }
+    }
+
+    override fun onCommitCandidate(text: CharSequence) {
+        val ic = currentInputConnection ?: return
+        // commitText replaces the composing region; finish clears any leftover
+        // pre-edit state so the next syllable starts clean.
+        ic.commitText(text, 1)
+        ic.finishComposingText()
     }
 
     override fun onSubmitWord(word: CharSequence) {

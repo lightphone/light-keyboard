@@ -28,7 +28,10 @@ import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.FrAzertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
+import com.thelightphone.lp3Keyboard.ui.viewmodel.ZhuyinLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
+import com.thelightphone.lp3Keyboard.ui.zhuyin.CandidateSource
+import com.thelightphone.lp3Keyboard.ui.zhuyin.StubCandidateSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +45,8 @@ enum class LayoutRegistryItem(
     EnQwerty(Locale.ENGLISH, "qwerty", "QWERTY (English)"),
     EnColemak(Locale.ENGLISH, "colemak", "Colemak (English)"),
     FrAzerty(Locale.FRENCH, "azerty", "AZERTY (French)"),
-    BeAzerty(Locale("nl", "BE"), "azerty", "AZERTY (Belgium)")
+    BeAzerty(Locale("nl", "BE"), "azerty", "AZERTY (Belgium)"),
+    Zhuyin(Locale("zh", "TW"), "bopomofo", "注音 (Bopomofo)")
     ;
 
     val uniqueId: String = "${locale}_$variant"
@@ -56,7 +60,10 @@ fun <SwipeResultType> LayoutRegistryItem.buildRootViewModel(
         LayoutOptions(
             displayCloseButton = true
         )
-    }
+    },
+    // Candidate data for layouts that compose (currently 注音). The default stub
+    // needs no assets; a host that ships or fetches a dictionary injects its own.
+    candidateSource: CandidateSource = StubCandidateSource()
 ): Lp3KeyboardViewModel<SwipeResultType> {
     return when (this) {
         LayoutRegistryItem.EnQwerty -> EnQwertyLp3KeyboardViewModel(
@@ -84,6 +91,14 @@ fun <SwipeResultType> LayoutRegistryItem.buildRootViewModel(
             passedCallback,
             swipeCallback,
             haptic,
+            optionsForLayout
+        )
+
+        LayoutRegistryItem.Zhuyin -> ZhuyinLp3KeyboardViewModel(
+            passedCallback,
+            swipeCallback,
+            haptic,
+            candidateSource,
             optionsForLayout
         )
     }

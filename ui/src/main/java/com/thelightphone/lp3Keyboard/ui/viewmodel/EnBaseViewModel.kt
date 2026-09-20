@@ -56,7 +56,7 @@ abstract class EnBaseViewModel<SwipeResult>(
 
     override val layoutFlow: MutableStateFlow<Layout> = MutableStateFlow(initialLayout)
 
-    private fun setLayout(layout: Layout) {
+    protected open fun setLayout(layout: Layout) {
         previousLayout = layoutFlow.value
         layoutOptionsFlow.value = optionsForLayout(layout)
         layoutFlow.value = layout
