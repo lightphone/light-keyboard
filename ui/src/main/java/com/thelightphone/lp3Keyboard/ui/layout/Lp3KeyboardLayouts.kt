@@ -56,35 +56,49 @@ fun <SwipeResultType> LayoutRegistryItem.buildRootViewModel(
         LayoutOptions(
             displayCloseButton = true
         )
-    }
+    },
+    // e.g. from ContentResolver.keyboardOptions(), the user's keyboard settings
+    keyboardOptionsFlow: StateFlow<KeyboardOptions> = MutableStateFlow(
+        KeyboardOptions(
+            defaultEmojis,
+            displayReturn = true,
+            displayVoice = true,
+            enableKeyAnimation = true,
+            swipeEnabled = false
+        )
+    )
 ): Lp3KeyboardViewModel<SwipeResultType> {
     return when (this) {
         LayoutRegistryItem.EnQwerty -> EnQwertyLp3KeyboardViewModel(
             passedCallback,
             swipeCallback,
             haptic,
-            optionsForLayout
+            optionsForLayout,
+            keyboardOptionsFlow
         )
 
         LayoutRegistryItem.EnColemak -> EnColemakLp3KeyboardViewModel(
             passedCallback,
             swipeCallback,
             haptic,
-            optionsForLayout
+            optionsForLayout,
+            keyboardOptionsFlow
         )
 
         LayoutRegistryItem.FrAzerty -> FrAzertyLp3KeyboardViewModel(
             passedCallback,
             swipeCallback,
             haptic,
-            optionsForLayout
+            optionsForLayout,
+            keyboardOptionsFlow
         )
 
         LayoutRegistryItem.BeAzerty -> BeAzertyLp3KeyboardViewModel(
             passedCallback,
             swipeCallback,
             haptic,
-            optionsForLayout
+            optionsForLayout,
+            keyboardOptionsFlow
         )
     }
 }
