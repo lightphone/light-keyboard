@@ -136,4 +136,49 @@ class TextFieldKeyboardCallbackTest {
             unmockkStatic(TextUtils::class)
         }
     }
+
+    private class FakeClipboard(var clip: CharSequence? = null) :
+        TextFieldKeyboardCallback.KeyboardClipboard {
+        override fun getText() = clip
+        override fun setText(text: CharSequence) {
+            clip = text
+        }
+    }
+
+    @Test
+    fun `copy puts all the text on the clipboard`() {
+        val clipboard = FakeClipboard()
+        val callback = TextFieldKeyboardCallback(TextFieldState("hello", TextRange(2)), clipboard = clipboard)
+        callback.onEditAction(EditAction.Copy)
+        assertEquals("hello", clipboard.clip)
+    }
+
+    @Test
+    fun `paste inserts the clipboard at the cursor`() {
+        val callback = TextFieldKeyboardCallback(
+            TextFieldState("ac", TextRange(1)),
+            clipboard = FakeClipboard("b"),
+        )
+        callback.onEditAction(EditAction.Paste)
+        assertEquals("abc", callback.text)
+        assertEquals(2, callback.cursor)
+    }
+
+    @Test
+    fun `paste joins lines on a single line`() {
+        val callback = TextFieldKeyboardCallback(
+            TextFieldState(""),
+            singleLine = true,
+            clipboard = FakeClipboard("a\nb"),
+        )
+        callback.onEditAction(EditAction.Paste)
+        assertEquals("a b", callback.text)
+    }
+
+    @Test
+    fun `clear empties the text`() {
+        val callback = callback("hello")
+        callback.onEditAction(EditAction.Clear)
+        assertEquals("", callback.text)
+    }
 }

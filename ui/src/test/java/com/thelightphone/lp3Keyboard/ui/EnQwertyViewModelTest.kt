@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -188,5 +189,39 @@ class EnQwertyViewModelTest {
 
         // caps mode carries through the symbols screen, so space should restore uppercase.
         assertSame(EnQwerty.UpperCaseLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `edit actions close the edit menu and go to the callback`() {
+        vm.showEditMenu()
+        assertTrue(vm.editMenuFlow.value)
+
+        vm.onEditAction(EditAction.Paste)
+
+        assertFalse(vm.editMenuFlow.value)
+        verify(exactly = 1) { callback.onEditAction(EditAction.Paste) }
+    }
+
+    @Test
+    fun `back closes the edit menu before the layout`() {
+        vm.onSpecialKeyReleased(SpecialKey.Emojis)
+        vm.showEditMenu()
+
+        vm.onBack()
+        assertFalse(vm.editMenuFlow.value)
+        assertSame(EnShared.EmojiLayout, vm.layoutFlow.value)
+
+        vm.onBack()
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
+    }
+
+    @Test
+    fun `back closes the special characters`() {
+        vm.onKeyLongPressed('e'.code)
+        assertTrue(vm.layoutFlow.value is EnShared.ExtendedCharKeyboard)
+
+        vm.onBack()
+
+        assertSame(EnQwerty.LowerCaseLayout, vm.layoutFlow.value)
     }
 }

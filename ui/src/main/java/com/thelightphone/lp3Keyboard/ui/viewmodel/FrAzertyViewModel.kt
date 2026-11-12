@@ -7,6 +7,7 @@ import com.thelightphone.lp3Keyboard.ui.layout.FrAzerty
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.Locale
 
 class FrAzertyLp3KeyboardViewModel<SwipeResult>(
     passedCallback: Lp3RepeatableKeyboardCallback,
@@ -36,4 +37,6 @@ class FrAzertyLp3KeyboardViewModel<SwipeResult>(
     lowerCaseLayout = FrAzerty.LowerCaseLayout,
     upperCaseLayout = FrAzerty.UpperCaseLayout,
     capsLockedLayout = FrAzerty.CapsLockedLayout,
-)
+) {
+    override val locale: Locale = Locale.FRENCH
+}
