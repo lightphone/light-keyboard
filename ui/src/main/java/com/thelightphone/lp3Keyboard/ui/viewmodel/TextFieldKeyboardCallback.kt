@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.delete
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.ui.text.TextRange
+import com.thelightphone.lp3Keyboard.ui.EditAction
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 
 /**
@@ -17,6 +18,7 @@ import com.thelightphone.lp3Keyboard.ui.SpecialKey
  * @param onHaptic called whenever a key goes down
  * @param onCapsModeChange given whether the next letter starts a sentence, after every edit and
  * [updateCapsMode]. null leaves caps alone
+ * @param clipboard where copy and paste go. null makes them do nothing
  */
 class TextFieldKeyboardCallback(
     val state: TextFieldState,
@@ -24,7 +26,14 @@ class TextFieldKeyboardCallback(
     private val onReturn: () -> Unit = {},
     private val onHaptic: () -> Unit = {},
     private val onCapsModeChange: ((Boolean) -> Unit)? = null,
+    private val clipboard: KeyboardClipboard? = null,
 ) : Lp3RepeatableKeyboardCallback {
+
+    /** the clipboard behind the edit menu, e.g. the system's ClipboardManager */
+    interface KeyboardClipboard {
+        fun getText(): CharSequence?
+        fun setText(text: CharSequence)
+    }
 
     // replaces all the text with [text] and puts the cursor at the end. a single line gets spaces for line breaks
     fun setText(text: CharSequence) {
@@ -33,6 +42,10 @@ class TextFieldKeyboardCallback(
         )
         updateCapsMode()
     }
+
+    // replaces the selection with [text]. a single line gets spaces for line breaks
+    fun paste(text: CharSequence) =
+        insert(if (singleLine) text.lines().joinToString(" ") else text.toString())
 
     fun moveCursor(offset: Int) {
         state.edit { selection = TextRange(offset.coerceIn(0, length)) }
@@ -73,6 +86,15 @@ class TextFieldKeyboardCallback(
     }
 
     override fun onSubmitWord(word: CharSequence) = insert(word.toString())
+
+    override fun onEditAction(action: EditAction) {
+        when (action) {
+            // all of it for now, there's no selection yet
+            EditAction.Copy -> clipboard?.setText(state.text.toString())
+            EditAction.Paste -> clipboard?.getText()?.let(::paste)
+            EditAction.Clear -> setText("")
+        }
+    }
 
     override fun onKeyRepeated(code: Int) = onKeyReleased(code)
 

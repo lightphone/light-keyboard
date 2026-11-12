@@ -2,6 +2,8 @@ package com.thelightphone.lp3keyboard
 
 import android.app.Application
 import android.app.PendingIntent
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -181,6 +183,16 @@ class TextEntryViewModel(app: Application) : AndroidViewModel(app) {
         // a single line has nowhere for return to go, so it finishes with the caller's action
         onReturn = { request.returnActionId?.let(::act) },
         onCapsModeChange = { keyboardViewModel?.setCapsMode(it) },
+        clipboard = object : TextFieldKeyboardCallback.KeyboardClipboard {
+            private val clipboard by lazy { app.getSystemService(ClipboardManager::class.java) }
+
+            override fun getText() = clipboard.primaryClip?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)?.coerceToText(app)
+
+            // TODO, USE LIGHTOS' SERVICE METHOD FOR SETTING CLIPBOARD TEXT QUIETLY
+            override fun setText(text: CharSequence) =
+                clipboard.setPrimaryClip(ClipData.newPlainText(request.title, text))
+        },
     )
 
     val text: String get() = state.text.toString()

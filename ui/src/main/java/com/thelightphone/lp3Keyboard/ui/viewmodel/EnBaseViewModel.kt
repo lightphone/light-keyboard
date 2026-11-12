@@ -2,6 +2,7 @@ package com.thelightphone.lp3Keyboard.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thelightphone.lp3Keyboard.ui.EditAction
 import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
 import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
@@ -251,6 +252,28 @@ abstract class EnBaseViewModel<SwipeResult>(
 
     override fun onSubmitWord(word: CharSequence) {
         delegateCallback?.onSubmitWord("$word ")
+    }
+
+    override val editMenuFlow = MutableStateFlow(false)
+
+    override fun showEditMenu() {
+        haptic()
+        cancelHeldKeys()
+        editMenuFlow.value = true
+    }
+
+    // open for language specific tweaks to editing
+    override fun onEditAction(action: EditAction) {
+        haptic()
+        editMenuFlow.value = false
+        delegateCallback?.onEditAction(action)
+    }
+
+    override fun onBack() {
+        when {
+            editMenuFlow.value -> editMenuFlow.value = false
+            !layoutFlow.value.isRootLayout -> showAlphabetLayout()
+        }
     }
 
     override fun onSwipeStarted() {

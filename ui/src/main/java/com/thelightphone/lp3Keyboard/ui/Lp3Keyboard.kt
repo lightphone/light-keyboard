@@ -91,7 +91,13 @@ interface Lp3KeyboardCallback {
 
     // Pointer left the key bounds before lifting. Clean up / do not treat as tap
     fun onKeyCancelled(code: Int) = onKeyReleased(code)
+
+    // picked from the edit menu, see Lp3KeyboardViewModel.showEditMenu
+    fun onEditAction(action: EditAction) = Unit
 }
+
+/** the edit menu's actions on the text being edited */
+enum class EditAction { Copy, Paste, Clear }
 
 interface Lp3KeyboardSwipeCallback<ResultType> {
     fun onSwipeLayoutReady(letters: String, cx: FloatArray, cy: FloatArray) = Unit

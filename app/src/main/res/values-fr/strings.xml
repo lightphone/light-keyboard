@@ -1,0 +1,5 @@
+<resources>
+    <string name="edit_copy">COPIER</string>
+    <string name="edit_paste">COLLER</string>
+    <string name="edit_clear">EFFACER</string>
+</resources>

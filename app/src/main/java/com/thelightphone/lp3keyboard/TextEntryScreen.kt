@@ -2,14 +2,19 @@ package com.thelightphone.lp3keyboard
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import androidx.annotation.StringRes
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +73,7 @@ import com.thelightphone.lp3Keyboard.textentry.TextEntryPosition
 import com.thelightphone.lp3Keyboard.textentry.TextEntryProtocol
 import com.thelightphone.lp3Keyboard.textentry.TextEntryRequest
 import com.thelightphone.lp3Keyboard.ui.DarkKeyboardColors
+import com.thelightphone.lp3Keyboard.ui.EditAction
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardTheme
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardWrapper
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
@@ -77,6 +83,7 @@ import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import androidx.core.graphics.createBitmap
 
 // MULTI-LINE LAYOUT IS NOT FINAL!
@@ -149,6 +156,7 @@ fun TextEntryScreen(
                 style = styles.heading,
                 color = colors.foreground,
                 onCursorMove = onCursorMove,
+                onLongPress = keyboardViewModel::showEditMenu,
                 modifier = Modifier.weight(1f),
             )
 
@@ -175,6 +183,12 @@ fun TextEntryScreen(
             val layout by keyboardViewModel.layoutFlow.collectAsState()
             val keyboardOptions by keyboardViewModel.keyboardOptionsFlow.collectAsState()
             val layoutOptions by keyboardViewModel.layoutOptionsFlow.collectAsState()
+            val editMenuOpen by keyboardViewModel.editMenuFlow.collectAsState()
+            // back closes whatever the close button would before it leaves the screen
+            BackHandler(
+                enabled = editMenuOpen || !layout.isRootLayout,
+                onBack = keyboardViewModel::onBack
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,6 +203,13 @@ fun TextEntryScreen(
                     swipeCallback = null,
                     additionalBottomHeight = KEYBOARD_BOTTOM_HEIGHT_UNITS.gridUnits(),
                     bottomBar = bottomBar,
+                    // only while open: without an overlay, the close button closes sub-layouts like emoji
+                    onOverlayDismissed = if (editMenuOpen) keyboardViewModel::onBack else null,
+                    overlay = if (editMenuOpen) {
+                        { EditMenu(keyboardViewModel.locale, styles.button, keyboardViewModel::onEditAction) }
+                    } else {
+                        null
+                    },
                 )
             }
         }
@@ -270,10 +291,12 @@ private fun InputText(
     style: TextStyle,
     color: Color,
     onCursorMove: (offset: Int) -> Unit,
+    onLongPress: () -> Unit,
     modifier: Modifier,
 ) {
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val currentOnCursorMove by rememberUpdatedState(onCursorMove)
+    val currentOnLongPress by rememberUpdatedState(onLongPress)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -282,6 +305,18 @@ private fun InputText(
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     textLayout?.let { currentOnCursorMove(it.getOffsetForPosition(down.position)) }
+                    if (awaitLongPressOrCancellation(down.id) != null) {
+                        currentOnLongPress()
+                        // the rest of the press is the long press's, not a cursor drag
+                        // TODO need to fix dragging
+                        do {
+                            val event = awaitPointerEvent()
+                            event.changes.forEach { it.consume() }
+                        } while (event.changes.any { it.pressed })
+                        return@awaitEachGesture
+                    }
+                    // moved past the touch slop while still down: drag the cursor
+                    if (currentEvent.changes.none { it.id == down.id && it.pressed }) return@awaitEachGesture
                     drag(down.id) { change ->
                         textLayout?.let { currentOnCursorMove(it.getOffsetForPosition(change.position)) }
                         change.consume()
@@ -323,6 +358,49 @@ private fun InputText(
                     .background(color)
             )
         }
+    }
+}
+
+@Composable
+private fun EditMenu(
+    locale: Locale,
+    textStyle: TextStyle,
+    onEdit: (EditAction) -> Unit,
+) {
+    val resources = localizedResources(locale)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        EditAction.entries.forEach { action ->
+            Box(
+                modifier = Modifier
+                    .clickable(interactionSource = null, indication = null) { onEdit(action) }
+                    .height(BOTTOM_BAR_HEIGHT_UNITS.gridUnits())
+                    .padding(horizontal = BOTTOM_BAR_PADDING_UNITS.gridUnits()),
+                contentAlignment = Alignment.Center,
+            ) {
+                BasicText(resources.getString(action.label), style = textStyle, maxLines = 1)
+            }
+        }
+    }
+}
+
+private val EditAction.label: Int
+    @StringRes get() = when (this) {
+        EditAction.Copy -> R.string.edit_copy
+        EditAction.Paste -> R.string.edit_paste
+        EditAction.Clear -> R.string.edit_clear
+    }
+
+/** this app's resources in [locale], whatever the phone's language is */
+@Composable
+private fun localizedResources(locale: Locale): Resources {
+    val context = LocalContext.current
+    return remember(context, locale) {
+        val config = Configuration(context.resources.configuration).apply { setLocale(locale) }
+        context.createConfigurationContext(config).resources
     }
 }
 
