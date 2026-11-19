@@ -180,7 +180,7 @@ class TextEntryViewModel(app: Application) : AndroidViewModel(app) {
         state,
         // a single line has nowhere for return to go, so it finishes with the caller's action
         onReturn = { request.returnActionId?.let(::act) },
-        onCapsModeChange = { keyboardViewModel?.setCapsMode(it) },
+        onCapsModeChange = { keyboardViewModel?.setCapsMode(it && request.autoCapitalize) },
     )
 
     val text: String get() = state.text.toString()

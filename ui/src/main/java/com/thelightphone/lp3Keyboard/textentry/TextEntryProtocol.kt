@@ -5,8 +5,9 @@ package com.thelightphone.lp3Keyboard.textentry
  *
  * Text never travels in the intent itself. The caller hands the keyboard two content URIs: a
  * readable [EXTRA_SOURCE_URI] with the starting text and a writable [EXTRA_RESULT_URI] for the
- * entered text. It also describes the screen: a [EXTRA_TITLE], a [EXTRA_MODE] and the
- * [EXTRA_ACTIONS] to show (see [TextEntryRequest], which reads and writes these).
+ * entered text. It also describes the screen: a [EXTRA_TITLE], a [EXTRA_MODE], the
+ * [EXTRA_ACTIONS] to show and any [EXTRA_OPTIONS] (see [TextEntryRequest], which reads and writes
+ * these).
  *
  * When the user hits an action, the keyboard writes the result and sends the [EXTRA_REPLY]
  * PendingIntent with [EXTRA_ACTION_ID] set to that action's id. When the user leaves without one
@@ -47,6 +48,21 @@ object TextEntryProtocol {
 
     /** String: in [TextEntryMode.Simple], the id of the action the return key fires */
     const val EXTRA_RETURN_ACTION_ID = "$NAMESPACE.extra.RETURN_ACTION_ID"
+
+    /**
+     * Bundle of String values: extra options keyed by the OPTION_* names. options the keyboard
+     * doesn't know are ignored
+     */
+    const val EXTRA_OPTIONS = "$NAMESPACE.extra.OPTIONS"
+
+    /** "true" to obscure the text, e.g. for passwords. only honored in [TextEntryMode.Simple] */
+    const val OPTION_PASSWORD = "password"
+
+    /**
+     * "true" or "false": whether the keyboard capitalizes the first letter of each sentence,
+     * including the first character. defaults to true, except for passwords
+     */
+    const val OPTION_AUTO_CAPITALIZE = "auto_capitalize"
 
     /** String, on the reply: the id of the action the user hit. absent if they cancelled. */
     const val EXTRA_ACTION_ID = "$NAMESPACE.extra.ACTION_ID"

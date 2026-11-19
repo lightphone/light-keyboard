@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -136,48 +138,74 @@ fun TextEntryTester(text: String, onResult: (String) -> Unit) {
         }
     }
 
-    testRequests(ctx).forEach { (label, request) ->
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(modifier = Modifier.fillMaxWidth(), onClick = { enter(request) }) {
-            Text(text = label)
-        }
+    var actions by remember { mutableStateOf(TestActions.Default) }
+    var password by remember { mutableStateOf(false) }
+    var autoCapitalize by remember { mutableStateOf<Boolean?>(null) }
+
+    fun request(mode: TextEntryMode) = TextEntryRequest(
+        title = if (mode == TextEntryMode.Simple) "Single line" else "Multi line",
+        mode = mode,
+        actions = actions.actions(ctx),
+        returnActionId = actions.returnActionId,
+        options = buildMap {
+            if (password) putAll(TextEntryRequest.PASSWORD_OPTIONS)
+            autoCapitalize?.let { put(TextEntryProtocol.OPTION_AUTO_CAPITALIZE, it.toString()) }
+        },
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(text = "Actions")
+    TestActions.entries.forEach { RadioRow(it.label, actions == it) { actions = it } }
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(text = "Options")
+    CheckboxRow("Password (single line only)", password) { password = it }
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(text = "Auto capitalize")
+    listOf("Default" to null, "On" to true, "Off" to false).forEach { (label, value) ->
+        RadioRow(label, autoCapitalize == value) { autoCapitalize = value }
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(modifier = Modifier.fillMaxWidth(), onClick = { enter(request(TextEntryMode.Simple)) }) {
+        Text(text = "Single line")
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(modifier = Modifier.fillMaxWidth(), onClick = { enter(request(TextEntryMode.Multi)) }) {
+        Text(text = "Multi line")
     }
     if (status.isNotEmpty()) Text(text = "Last entry: $status")
 }
 
-private fun testRequests(ctx: Context): List<Pair<String, TextEntryRequest>> {
-    val back = TextEntryAction(
-        TextEntryProtocol.ACTION_ID_CANCEL,
-        TextEntryPosition.TopLeft,
-        TextEntryAction.Content.Icon(TextEntryIcon.Back),
-        "Back",
-    )
-    val submit = TextEntryAction("submit", TextEntryPosition.BottomCenter, TextEntryAction.Content.Text("SUBMIT"))
-    // a caller's own icon, loaded from its resources like the SDK sends them
-    fun resourceIcon(id: Int) = TextEntryAction.Content.CustomIcon(
-        Uri.Builder()
-            .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-            .authority(ctx.packageName)
-            .appendPath(id.toString())
-            .build()
-    )
-    return listOf(
-        // TextEntryRequest's defaults: a single line, back and a check in the top bar, and return
-        // finishing like the check
-        "Single line (defaults)" to TextEntryRequest(title = "Name"),
-        "Multi line (default actions)" to TextEntryRequest(title = "Note", mode = TextEntryMode.Multi),
-        // what LightTextInputEditor sends for a single line editor
-        "Single line (SDK style)" to TextEntryRequest(
-            title = "Name",
-            mode = TextEntryMode.Simple,
-            actions = listOf(back, submit),
-            returnActionId = submit.id,
-        ),
-        // the SDK's left and right bottom bar items, as custom icons
-        "Multi line, bottom icons" to TextEntryRequest(
-            title = "Message",
-            mode = TextEntryMode.Multi,
-            actions = listOf(
+/** the sets of actions the tester can ask for */
+private enum class TestActions(val label: String, val returnActionId: String?) {
+    /** TextEntryRequest's defaults: back and a check in the top bar, and return finishing like the check */
+    Default("Back + check (defaults)", TextEntryRequest.ACTION_ID_DONE),
+
+    /** what LightTextInputEditor sends for a single line editor */
+    Submit("Back + SUBMIT (SDK style)", SUBMIT_ID),
+
+    /** the SDK's left and right bottom bar items, as custom icons */
+    SubmitAndIcons("Back + SUBMIT + bottom icons", SUBMIT_ID);
+
+    fun actions(ctx: Context): List<TextEntryAction> {
+        val back = TextEntryAction(
+            TextEntryProtocol.ACTION_ID_CANCEL,
+            TextEntryPosition.TopLeft,
+            TextEntryAction.Content.Icon(TextEntryIcon.Back),
+            "Back",
+        )
+        val submit = TextEntryAction(SUBMIT_ID, TextEntryPosition.BottomCenter, TextEntryAction.Content.Text("SUBMIT"))
+        // a caller's own icon, loaded from its resources like the SDK sends them
+        fun resourceIcon(id: Int) = TextEntryAction.Content.CustomIcon(
+            Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(ctx.packageName)
+                .appendPath(id.toString())
+                .build()
+        )
+        return when (this) {
+            Default -> TextEntryRequest.DEFAULT_ACTIONS
+            Submit -> listOf(back, submit)
+            SubmitAndIcons -> listOf(
                 back,
                 submit,
                 TextEntryAction(
@@ -192,9 +220,41 @@ private fun testRequests(ctx: Context): List<Pair<String, TextEntryRequest>> {
                     resourceIcon(com.thelightphone.lp3Keyboard.ui.R.drawable.check_lp3),
                     "Right",
                 ),
-            ),
-        ),
-    )
+            )
+        }
+    }
+}
+
+private const val SUBMIT_ID = "submit"
+
+@Composable
+private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(selected = selected, onClick = onSelect),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Click is handled by the row's selectable modifier above.
+        RadioButton(selected = selected, onClick = null, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label)
+    }
+}
+
+@Composable
+private fun CheckboxRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, onValueChange = onCheckedChange),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Click is handled by the row's toggleable modifier above.
+        Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label)
+    }
 }
 
 @Composable
@@ -203,26 +263,9 @@ fun LayoutPicker() {
     var selected by remember { mutableStateOf(LayoutPreferences.getActiveLayout(ctx)) }
     Column(modifier = Modifier.fillMaxWidth()) {
         LayoutRegistryItem.entries.forEach { item ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = item == selected,
-                        onClick = {
-                            selected = item
-                            LayoutPreferences.setActiveLayout(ctx, item)
-                        },
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(
-                    selected = item == selected,
-                    // Click is handled by the row's selectable modifier above.
-                    onClick = null,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = item.label)
+            RadioRow(item.label, item == selected) {
+                selected = item
+                LayoutPreferences.setActiveLayout(ctx, item)
             }
         }
     }
