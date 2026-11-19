@@ -106,6 +106,8 @@ data class TextEntryRequest(
      * defaults to the [ACTION_ID_DONE] action if there is one, e.g. with [DEFAULT_ACTIONS]
      */
     val returnActionId: String? = defaultReturnActionId(actions),
+    /** extra options keyed by the TextEntryProtocol.OPTION_* names, e.g. [PASSWORD_OPTIONS] */
+    val options: Map<String, String> = emptyMap(),
 ) {
     init {
         require(actions.distinctBy { it.id }.size == actions.size) { "text entry action ids must be distinct" }
@@ -115,15 +117,30 @@ data class TextEntryRequest(
     /** the action at [position], if any */
     fun actionAt(position: TextEntryPosition) = actions.firstOrNull { it.position == position }
 
+    /** whether the text is obscured. only a [TextEntryMode.Simple] entry can be a password */
+    val isPassword: Boolean
+        get() = mode == TextEntryMode.Simple && options[TextEntryProtocol.OPTION_PASSWORD] == true.toString()
+
+    /**
+     * whether sentences, including the first character, start capitalized. on unless the caller
+     * turns it off, or it's a password and the caller doesn't turn it back on
+     */
+    val autoCapitalize: Boolean
+        get() = options[TextEntryProtocol.OPTION_AUTO_CAPITALIZE]?.toBooleanStrictOrNull() ?: !isPassword
+
     fun writeTo(intent: Intent): Intent = intent
         .putExtra(TextEntryProtocol.EXTRA_TITLE, title)
         .putExtra(TextEntryProtocol.EXTRA_MODE, mode.wireName)
         .putParcelableArrayListExtra(TextEntryProtocol.EXTRA_ACTIONS, ArrayList(actions.map { it.toBundle() }))
         .putExtra(TextEntryProtocol.EXTRA_RETURN_ACTION_ID, returnActionId)
+        .putExtra(TextEntryProtocol.EXTRA_OPTIONS, Bundle().apply { options.forEach { (k, v) -> putString(k, v) } })
 
     companion object {
         /** the id [DEFAULT_ACTIONS] returns when the user is done */
         const val ACTION_ID_DONE = "done"
+
+        /** [options] for an obscured, password entry */
+        val PASSWORD_OPTIONS = mapOf(TextEntryProtocol.OPTION_PASSWORD to true.toString())
 
         private fun defaultReturnActionId(actions: List<TextEntryAction>) =
             ACTION_ID_DONE.takeIf { done -> actions.any { it.id == done } }
@@ -165,6 +182,9 @@ data class TextEntryRequest(
                 } else {
                     defaultReturnActionId(actions)
                 },
+                options = intent.getBundleExtra(TextEntryProtocol.EXTRA_OPTIONS)?.let { bundle ->
+                    bundle.keySet().mapNotNull { key -> bundle.getString(key)?.let { key to it } }.toMap()
+                }.orEmpty(),
             )
         }
     }

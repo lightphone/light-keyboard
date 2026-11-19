@@ -99,6 +99,8 @@ private const val KEYBOARD_BOTTOM_HEIGHT_UNITS = 5f
 private const val DESIGN_HEIGHT_PX = 600f
 private const val INPUT_UNDERLINE_THICKNESS_PX = 3f
 
+private const val PASSWORD_DOT = '\u2022'
+
 @Composable
 fun TextEntryScreen(
     state: TextFieldState,
@@ -146,6 +148,7 @@ fun TextEntryScreen(
             InputText(
                 state = state,
                 singleLine = request.mode == TextEntryMode.Simple,
+                password = request.isPassword,
                 style = styles.heading,
                 color = colors.foreground,
                 onCursorMove = onCursorMove,
@@ -267,6 +270,7 @@ private fun TopBar(
 private fun InputText(
     state: TextFieldState,
     singleLine: Boolean,
+    password: Boolean,
     style: TextStyle,
     color: Color,
     onCursorMove: (offset: Int) -> Unit,
@@ -292,7 +296,7 @@ private fun InputText(
     ) {
         Column(Modifier.fillMaxWidth()) {
             BasicText(
-                text = state.text.toString(),
+                text = state.text.toString().let { if (password) PASSWORD_DOT.toString().repeat(it.length) else it },
                 style = style,
                 onTextLayout = { textLayout = it },
                 maxLines = if (singleLine) 1 else Int.MAX_VALUE,
