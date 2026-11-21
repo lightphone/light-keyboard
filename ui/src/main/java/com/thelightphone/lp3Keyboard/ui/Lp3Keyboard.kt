@@ -105,6 +105,8 @@ const val LP3_KEYBOARD_HEIGHT_DP = 164
 const val STANDARD_KEY_WIDTH_DP = 35
 const val ICON_KEY_WIDTH_DP = STANDARD_KEY_WIDTH_DP + 14
 const val MEDIUM_KEY_WIDTH_DP = STANDARD_KEY_WIDTH_DP + 8
+// 11-key rows (e.g. Swedish qwertyuiopå) must fit the 360dp screen: 11 * 32 = 352
+const val NARROW_KEY_WIDTH_DP = 32
 const val STANDARD_ROW_HEIGHT_DP = 44
 const val STANDARD_KEY_TEXT_SP = 25
 const val MINIMUM_SWIPE_DP = 40
@@ -577,9 +579,10 @@ fun ColumnScope.FirstRow(
     swipeConfig: SwipeConfig?,
     enableKeyAnimation: Boolean
 ) {
+    val keyWidth = if (characters.length > 10) NARROW_KEY_WIDTH_DP.dp else STANDARD_KEY_WIDTH_DP.dp
     DefaultRow {
         for (char in characters) {
-            Key(char, callback, swipeConfig, enableKeyAnimation)
+            Key(char.code, callback, swipeConfig, enableKeyAnimation, width = keyWidth)
         }
     }
 }
@@ -620,6 +623,31 @@ fun ColumnScope.ThirdRow(
             SpecialKey.Backspace,
             callback,
             keyboardOptions.enableKeyAnimation,
+            width = ICON_KEY_WIDTH_DP.dp,
+            modifier = Modifier.padding(10.dp).padding(start = 8.dp, bottom = 6.dp)
+        )
+    }
+}
+
+/** Third row at the same 32dp key pitch as the 11-key rows above, so the grid keeps one rhythm. */
+@Composable
+internal fun ColumnScope.NarrowThirdRow(
+    characters: String,
+    callback: Lp3KeyboardCallback,
+    swipeConfig: SwipeConfig?,
+    options: KeyboardOptions,
+    leftButton: @Composable RowScope.() -> Unit
+) {
+    DefaultRow {
+        leftButton()
+        for (char in characters) {
+            Key(char.code, callback, swipeConfig, options.enableKeyAnimation, width = NARROW_KEY_WIDTH_DP.dp)
+        }
+        IconKey(
+            R.drawable.back_lp3,
+            SpecialKey.Backspace,
+            callback,
+            options.enableKeyAnimation,
             width = ICON_KEY_WIDTH_DP.dp,
             modifier = Modifier.padding(10.dp).padding(start = 8.dp, bottom = 6.dp)
         )
